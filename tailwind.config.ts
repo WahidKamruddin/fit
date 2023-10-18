@@ -9,12 +9,17 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        'matcha' : {
-          100: '#a0b682',
-          200: '#abb085',
-          300: '#98ac6f',
-          400: '#617b5b'
+        'mocha' : {
+          100: '#E9DDC8',
+          200: '#D9D0C1',
+          250: '#D2CBC3',
+          300: '#CDB38F',
+          400: '#A28769',
+          500: '#634832'
         }
+      },
+      fontFamily: {
+        nunito: ['Nunito']        
       }
     },
   },

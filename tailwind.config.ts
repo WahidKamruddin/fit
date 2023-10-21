@@ -11,11 +11,16 @@ const config: Config = {
       colors: {
         'mocha' : {
           100: '#E9DDC8',
+          150: '#BCAC92',
           200: '#D9D0C1',
           250: '#D2CBC3',
           300: '#CDB38F',
           400: '#A28769',
           500: '#634832'
+        },
+        
+        'off-white' : {
+          100: '#F9F9F9'
         }
       },
       fontFamily: {

@@ -1,5 +1,5 @@
 "use client"
-import Buttons from "./buttons";
+import Buttons from "./buttons(OUTDATED)";
 import { setTimeout } from "timers/promises";
 import { useTypewriter } from "react-simple-typewriter";
 
@@ -23,7 +23,7 @@ export default function Outfits() {
 
 
     return (
-        <div className="h-screen bg-off-white-100">
+        <div className="h-screen min-w-full bg-off-white-100">
             <h1 className="ml-20 pt-16 text-4xl text-mocha-400 text-center">AI Outfits</h1>
             <div className="w-full mt-10 px-20 flex justify-evenly">
                 <div className="w-4/12 h-64 text-mocha-400 text-center rounded-xl">
@@ -35,9 +35,7 @@ export default function Outfits() {
                 </div>
                 <div className="w-3/12 h-64 bg-mocha-400 rounded-xl">I'm still workin on it bruh</div>
             </div>
-            <div className="mt-10">
-                <Buttons/>
-            </div>
+
         </div>
     )
 }

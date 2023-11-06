@@ -28,3 +28,9 @@ body {
     width: 2rem;
     background-color: #634832;
 }
+
+
+.page.active {
+    transform: translateX(0px);
+    transition: 0.75s;
+}

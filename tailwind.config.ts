@@ -21,6 +21,11 @@ const config: Config = {
         
         'off-white' : {
           100: '#F9F9F9'
+        },
+
+        'olive' : {
+          100: '#ACB09D',
+          200: '#626355'
         }
       },
       fontFamily: {

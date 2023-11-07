@@ -1,7 +1,5 @@
 "use client"
 
-import Buttons from "./buttons(OUTDATED)";
-
 export default function Wardrobe() {
     return (
         <div className="h-screen min-w-full bg-off-white-100">

@@ -3,6 +3,13 @@
 @tailwind components;
 @tailwind utilities;
 
+
+html {
+    --scroll-behavior: smooth!important;
+    scroll-behavior: smooth!important;
+    }
+
+    
 body {
     margin: 0;
     background-color: #D4CABF;
@@ -30,7 +37,17 @@ body {
 }
 
 
-.page.active {
+.page1.active {
+    transform: translateX(-100%);
+    transition: 0.75s;
+}
+
+.page2.active {
     transform: translateX(0px);
+    transition: 0.75s;
+}
+
+.page3.active {
+    transform: translateX(-200%);
     transition: 0.75s;
 }

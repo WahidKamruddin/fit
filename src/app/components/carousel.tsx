@@ -2,6 +2,7 @@
 
 import Outfits from "./outfit";
 import Wardrobe from "./wardrobe";
+import Shop from "./shops";
 
 import {BiSolidLeftArrow, BiSolidRightArrow} from "react-icons/bi";
 import { useState } from "react";
@@ -10,6 +11,11 @@ export default function Carousel() {
     const [buttonState1, setButtonState1] = useState(true);
     const [buttonState2, setButtonState2] = useState(false);
     const [buttonState3, setButtonState3] = useState(false);
+
+
+    let toggleClass1 = buttonState1 ? ' active' : '';
+    let toggleClass2 = buttonState2 ? ' active' : '';
+    let toggleClass3 = buttonState3 ? ' active' : '';
 
     function handleClick1() {
         setButtonState1(true);
@@ -29,15 +35,12 @@ export default function Carousel() {
         setButtonState3(true);
     }
 
-    let toggleClass1 = buttonState1 ? ' active' : '';
-    let toggleClass2 = buttonState2 ? ' active' : '';
-    let toggleClass3 = buttonState3 ? ' active' : '';
-
     return (
-        <div className="h-screen relative">
+        <div id="about" className="h-screen relative">
             <div className="relative flex overflow-hidden">
-                <div className="min-w-full left-0"><Wardrobe/></div>
-                <div className={`page${toggleClass2} translate-x-full min-w-full absolute duration-700`}><Outfits/></div>
+                <div className={`page1${toggleClass2} page1${toggleClass3} min-w-full duration-700`} ><Wardrobe/></div>
+                <div className={`page2${toggleClass2} translate-x-full min-w-full absolute duration-700`}><Outfits/></div>
+                <div className={`page2${toggleClass3} translate-x-full min-w-full absolute duration-700`}><Shop/></div>
             </div>
             <div className="absolute w-full bottom-6">
                 <div className="flex justify-center">

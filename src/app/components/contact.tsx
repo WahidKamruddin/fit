@@ -8,7 +8,7 @@ export default function Contact() {
         <div id="notif" className="h-screen bg-mocha-500">
             <h1 className="pt-16 text-4xl text-center">Get Notified</h1>
             <div className="text-xl flex flex-col items-center ">
-                <h2 className="mt-16">Lose the pile of clothes on your bed. Sign up for FIT Beta.</h2>
+                <h2 className="mt-16 text-center">Lose the pile of clothes on your bed. Sign up for FIT Beta.</h2>
                 <button className="mt-10 text-lg py-2 px-4 bg-transparent text-white text-center rounded-xl border-2 border-white hover:border-mocha-100 hover:text-mocha-300 duration-500 flex items-center"><a href="https://forms.gle/fedR43dq635K6jdH7" target="_blank" rel="noreferrer" className="mr-2">Notify Me</a><BsBell/></button>
             </div>
 

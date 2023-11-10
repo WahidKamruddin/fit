@@ -8,7 +8,7 @@ import Link from 'next/link'
 
 export default function Navbar() {
     return(
-        <div id="navbar" className="w-full t-0 bg-transparent absolute flex justify-end">
+        <div id="navbar" className="absolute w-full bg-transparent flex justify-end">
             <ul className="mr-1 py-6 flex cursor-pointer">
                 <li className="mr-10 flex pb-2 border-transparent border-b-2  hover:border-white hover:duration-700 "><Link href="#home"><BiHomeAlt2 size={23} color="white"/></Link></li>
                 <li className="mr-10 flex pb-2 border-transparent border-b-2  hover:border-white hover:duration-700 "><Link href="#about"><AiOutlineQuestionCircle size={23}/></Link></li>

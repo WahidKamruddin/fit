@@ -3,17 +3,17 @@
 export default function Wardrobe() {
     return (
         <div className="h-screen min-w-full bg-off-white-100">
-            <h1 className="ml-20 pt-16 text-4xl text-mocha-400">Digital Wardrobe.</h1>
-            <div className="w-full mt-10 px-20 flex justify-between">
-                <div className="w-7/12 h-fit py-5 px-6 rounded-2xl bg-mocha-400">
+            <h1 className="ml-20 pt-16 text-3xl sm:text-4xl text-mocha-400">Digital Wardrobe.</h1>
+            <div className="w-full mt-10 px-10 sm:px-20 sm:flex sm:justify-between">
+                <div className="w-full sm:w-7/12 h-auto sm:h-fit py-3 sm:py-5 px-4 sm:px-6 rounded-2xl bg-mocha-400">
                     <img src="./img/virtualCloset.svg" className="rounded-xl"/>
                 </div>
 
-                <div className="w-4/12 h-1/2 p-4 mr-10 mt-16 bg-mocha-400 rounded-2xl">
-                    <div className="text-center font-normal text-xl leading-loose">
-                        <p className="mt-16">Find your clothes instantly.</p>
+                <div className="w-full sm:w-4/12 h-4/12 p-8 sm:p-4 mr-10 mt-16 bg-mocha-400 rounded-2xl">
+                    <div className="h-full text-center font-normal text-lg sm:text-xl flex flex-col justify-center">
+                        <p className="">Find your clothes instantly.</p>
                         <p className="mt-5">Skip the mess.</p>
-                        <p className="mt-5 pb-16">And the folding.</p>
+                        <p className="mt-5">And the folding.</p>
                     </div>
                 </div>
             </div>

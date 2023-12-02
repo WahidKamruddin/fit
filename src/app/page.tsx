@@ -1,14 +1,20 @@
-import Carousel from "./components/carousel";
 import Contact from "./components/contact";
 import Hero from "./components/hero";
 import Timeline from "./components/timeline";
 import Closet from "./pages/clothes";
+import Outfits from "./components/outfit";
+import Wardrobe from "./components/wardrobe";
+import Shop from "./components/shop";
 
 export default function Home() {
   return (
     <div>
       <Hero/>
-      <Carousel/>
+      <Wardrobe/>
+      <hr/>
+      <Outfits/>
+      <hr/>
+      <Shop/>
       <Timeline/>
       <Contact/>
     </div>

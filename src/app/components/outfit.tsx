@@ -23,7 +23,7 @@ export default function Outfits() {
 
     return (
         <div className="h-screen min-w-full bg-off-white-100">
-            <h1 className="ml-20 pt-16 text-4xl text-mocha-400 text-center">AI Outfits</h1>
+            <h1 className="ml-20 pt-16 text-4xl text-mocha-400 text-center">AI Outfits.</h1>
             <div className="w-full mt-24 pl-16 pr-20 flex justify-evenly items-center">
                 <div className="w-4/12 h-64 text-mocha-400 text-center rounded-xl">
                     <h1>Choose from hundreds of different styles.</h1>

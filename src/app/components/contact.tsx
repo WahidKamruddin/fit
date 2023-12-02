@@ -13,10 +13,9 @@ export default function Contact() {
             </div>
 
             <h2 className="mt-32 text-xl text-center">More of me here:</h2>
-            <div className="flex justify-center mt-16"><a href="https://wahidkamruddin.netlify.app/" target="_blank" className="py-2 px-4 bg-white flex rounded-xl hover:scale-110 hover:bg-mocha-100 duration-500 " ><TbLetterW size={30} className="text-mocha-500"/><TbLetterK size={30} className="text-mocha-500"/></a></div>
             <div className="w-full mt-16 flex justify-center">
                 <a href="https://www.linkedin.com/in/wahid-kamruddin-191248209/" target="_blank" rel="noreferrer"><AiFillLinkedin size={70} className="mx-4 rounded-xl hover:scale-110 hover:fill-mocha-100 duration-500"/></a>
-                <a href="https://www.instagram.com/wahidkamruddin/" target="_blank" rel="noreferrer"><AiFillInstagram size={70} className="mx-4 hover:scale-110 hover:fill-mocha-100 duration-500"/></a>
+                <div className="flex justify-center items-center"><a href="https://wahidkamruddin.netlify.app/" target="_blank" className="mx-4 py-4 px-4 bg-white flex rounded-3xl hover:scale-110 hover:bg-mocha-100 duration-500 " ><TbLetterW size={30} className="text-mocha-500"/><TbLetterK size={30} className="text-mocha-500"/></a></div>
                 <a href="https://github.com/WahidKamruddin" target="_blank" rel="noreferrer"><AiFillGithub size={70} className="mx-4 hover:scale-110 hover:fill-mocha-100 duration-500"/></a>
             </div>
         </div>

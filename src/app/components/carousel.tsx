@@ -2,7 +2,7 @@
 
 import Outfits from "./outfit";
 import Wardrobe from "./wardrobe";
-import Shop from "./shops";
+import Shop from "./shop";
 
 import {BiSolidLeftArrow, BiSolidRightArrow} from "react-icons/bi";
 import { useState } from "react";

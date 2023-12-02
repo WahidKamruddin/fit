@@ -11,7 +11,7 @@ export default function Wardrobe() {
 
                 <div className="w-full sm:w-4/12 h-4/12 p-8 sm:p-4 mr-10 mt-16 bg-mocha-400 rounded-2xl">
                     <div className="h-full text-center font-normal text-lg sm:text-xl flex flex-col justify-center">
-                        <p className="">Find your clothes instantly.</p>
+                        <p>Find your clothes instantly.</p>
                         <p className="mt-5">Skip the mess.</p>
                         <p className="mt-5">And the folding.</p>
                     </div>

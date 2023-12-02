@@ -28,7 +28,7 @@ export default function Outfits() {
                 <div className="w-4/12 h-64 text-mocha-400 text-center rounded-xl">
                     <h1>Choose from hundreds of different styles.</h1>
                     <h1 className="my-10 text-3xl">{style}. </h1>
-                    <h1>Or wear what you're feeling.</h1>
+                    <h1>{"Or wear what you're feeling."}</h1>
                     <h1 className="my-10 text-3xl">{themes}.</h1>
                 </div>
 

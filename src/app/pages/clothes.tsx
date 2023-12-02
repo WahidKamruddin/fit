@@ -31,7 +31,7 @@ export default function Closet() {
   return (
     <div className="h-screen pt-20 bg-off-white-100 text-black relative"> 
       <div className="ml-20 mr-20">
-        <h1 className="text-4xl">Wahid's Closet</h1>
+        <h1 className="text-4xl">{"Wahid's Closet"}</h1>
 
         {/* Header */}
         <div className="mt-5 w-full flex justify-between">

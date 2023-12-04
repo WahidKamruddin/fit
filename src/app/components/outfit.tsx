@@ -1,6 +1,7 @@
 "use client"
 import { setTimeout } from "timers/promises";
 import { useTypewriter } from "react-simple-typewriter";
+import Image from "next/image";
 
 export default function Outfits() {
 
@@ -34,8 +35,8 @@ export default function Outfits() {
 
                 <div className="w-5/12 p-6 bg-mocha-400 rounded-xl">
                     <div className="w-full py-4 bg-off-white-100 rounded-xl flex justify-evenly">
-                        <img src="./img/fit1.svg" className="w-5/12"/>
-                        <img src="./img/fit2.svg" className="w-5/12"/>
+                        <Image alt="outfit" src="./img/fit1.svg" className="w-5/12" width={500} height={500}/>
+                        <Image alt="outfit" src="./img/fit2.svg" className="w-5/12" width={500} height={500}/>
                     </div>
                 </div>  
             </div>

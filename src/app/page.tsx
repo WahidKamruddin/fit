@@ -17,6 +17,7 @@ export default function Home() {
       <Shop/>
       <Timeline/>
       <Contact/>
+      <Closet/>
     </div>
     )
 }

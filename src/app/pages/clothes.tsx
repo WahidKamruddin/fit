@@ -28,6 +28,8 @@ export default function Closet() {
 
   let aClothing = new Clothing("Sweater","green","top",undefined,undefined);
 
+  let closet = [aClothing];
+
   return (
     <div className="h-screen pt-20 bg-off-white-100 text-black relative"> 
       <div className="ml-20 mr-20">
@@ -60,6 +62,7 @@ export default function Closet() {
         </div>
       </div>
 
+      {/* add button */}
       {add? <div className="absolute w-full h-full top-0 bg-black z-50 flex justify-center items-center bg-opacity-20">
         <div className="relative w-1/4 h-auto p-3 bg-white opacity-100 rounded-xl flex flex-col justify-center">
           <h1 className="text-center">Add a clothing</h1>
@@ -93,3 +96,4 @@ export default function Closet() {
     </div>
   )
 }
+ 

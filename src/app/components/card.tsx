@@ -1,26 +1,50 @@
-import Clothing from "../class"
-import {LiaEditSolid} from "react-icons/lia"
+import { FaMinusCircle } from "react-icons/fa";
 import {FaStar} from "react-icons/fa"
-import {AiOutlineStar} from "react-icons/ai"
+import {AiOutlineStar, AiOutlineDelete} from "react-icons/ai"
 import { useState } from "react"
-import Image from "next/image"
+import { deleteDoc, doc } from "firebase/firestore";
+import { db } from "../firebase/clientApp";
 
-export default function Card(aClothing : Clothing) {
+
+export default function Card({ aClothing }: { aClothing: any }) {
 
     const [isActive, setIsActive] = useState(true);
+    const [isEdit, setIsEdit] = useState(false);
+
+    function favorite() {
+        setIsActive(!isActive);
+        aClothing.starred = true;
+    }
+
+    function unfavorite () {
+        setIsActive(!isActive);
+        aClothing.starred = false;
+    }
+
+    const deleteClothing = async (id:any) => {
+        await deleteDoc(doc(db, "Clothes", aClothing.id));
+      };
 
     return(
         <div className="relative bg-black rounded-xl group">
             <div className="relative bg-olive-100 rounded-xl select-none">
-                <button className="absolute top-0 right-0 p-1 text-center text-md text-white bg-olive-200 rounded-xl drop-shadow-xl z-10"><LiaEditSolid/></button>
+                {/* delete */}
+                <button className="absolute top-0 right-0 m-1 text-center text-md text-red-600 bg-white rounded-xl drop-shadow-xl z-10" onClick={deleteClothing}><FaMinusCircle/></button>
+
+
+                {/* favorite */}
                 <button className="absolute top-2 left-2 text-xl text-white cursor-pointer z-10">
-                    {isActive? <AiOutlineStar onClick={()=>{setIsActive(!isActive)}}/>:<FaStar onClick={()=>{setIsActive(!isActive)}} className="text-amber-500"/>}
+                    {isActive? <AiOutlineStar onClick={() => favorite()}/>:<FaStar onClick={() => unfavorite()} className="text-amber-500"/>}
                 </button>
+
+                {/* image */}
                 <img alt="clothing" src="../img/jacket.png" width={225} height={225} className="p-4 group-hover:blur-sm z-0"/>
             </div>
+
+            {/* text hover */}
             <div className="absolute top-0 w-full h-full bg-transparent text-transparent group-hover:text-white flex justify-center items-center">
                 <div className="h-fit">
-                    <h1 className="relative">{aClothing.getName()}</h1>
+                    <h1 className="relative">{aClothing.clothing.getName()}</h1>
                 </div>
             </div>
         </div>

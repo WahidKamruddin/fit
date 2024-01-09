@@ -1,11 +1,22 @@
 class Clothing {
+    //private fields
+    private material = {
+        name: "name",
+        warm: 0,
+        comfort: 0
+        };
+    
+    private style = [];
+
+    public starred:boolean = false;
+
     //constructor
     public constructor(private name:string, private color:string, private type:string, material?:any, style?:any){
         this.name = name;
         this.color = color;
         this.type = type;
-        this.material = material;
-        this.style = [style];
+        if (material != undefined) { this.material = material; }
+        if (style != undefined) { this.style = style; }
     }
 
     //setter
@@ -17,37 +28,25 @@ class Clothing {
         if (aStyle != undefined) { this.style.concat(aStyle);}
     }
 
-    public getName() {
-        return this.name;
-    }
+    public getName() { return this.name; }
 
-    public getColor() {
-        return this.color;
-    }
+    public getColor() { return this.color; }
 
-    public getType() {
-        return this.type;
-    }
+    public getType() { return this.type; }
+
+    public getMaterial() { return this.material; }
+
+    public getStyle() { return this.style; }
+
+    public getStarred() { return this.starred; }
+
     
-    //private fields
-    private material = {
-    name: "name",
-    warm: 0,
-    comfort: 0
-    };
-
-    private style = ["hello"];
 }
 
 export default Clothing
 
-// let aMaterial:{name:string, warm:number, comfort: number} = {
-//     name: "cotton",
-//     warm: 0,
-//     comfort: 0
-// };
 
-// let aStyle = ["goth", "soft", "alt"];
-// let aClothing = new Clothing("sweater", "blue", "top", undefined, aStyle);
+
+// let aClothing = new Clothing("sweater", "blue", "top");
 
 // console.log(aClothing);

@@ -1,7 +1,7 @@
 import Contact from "./components/contact";
 import Hero from "./components/hero";
 import Timeline from "./components/timeline";
-import Closet from "./pages/clothes";
+import Closet from "./(routes)/closet/page";
 import Outfits from "./components/outfit";
 import Wardrobe from "./components/wardrobe";
 import Shop from "./components/shop";
@@ -17,7 +17,6 @@ export default function Home() {
       <Shop/>
       <Timeline/>
       <Contact/>
-      <Closet/>
     </div>
     )
 }

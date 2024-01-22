@@ -46,7 +46,3 @@ class Clothing {
 export default Clothing
 
 
-
-// let aClothing = new Clothing("sweater", "blue", "top");
-
-// console.log(aClothing);

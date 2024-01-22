@@ -5,7 +5,7 @@ import {TbLetterW,TbLetterK} from "react-icons/tb";
 
 export default function Contact() {
     return(
-        <div id="notif" className="h-screen bg-mocha-500">
+        <div id="notif" className="h-screen bg-mocha-500 text-white">
             <h1 className="pt-16 text-4xl text-center">Get Notified</h1>
             <div className="text-xl flex flex-col items-center ">
                 <h2 className="mt-16 text-center">Lose the pile of clothes on your bed. Sign up for FIT Beta.</h2>

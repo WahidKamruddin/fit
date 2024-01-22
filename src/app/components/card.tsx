@@ -3,14 +3,14 @@ import {FaStar} from "react-icons/fa"
 import {AiOutlineStar, AiOutlineDelete} from "react-icons/ai"
 import { useState } from "react"
 import { deleteDoc, doc } from "firebase/firestore";
-import { db } from "../firebase/clientApp";
+import { db } from "../firebaseConfig/clientApp";
 
 
-export default function Card({ aClothing }: { aClothing: any }) {
+export default function Card({ aClothing, userID }: { aClothing: any, userID: string }) {
 
     const [isActive, setIsActive] = useState(true);
     const [isEdit, setIsEdit] = useState(false);
-
+    
     function favorite() {
         setIsActive(!isActive);
         aClothing.starred = true;
@@ -22,7 +22,7 @@ export default function Card({ aClothing }: { aClothing: any }) {
     }
 
     const deleteClothing = async (id:any) => {
-        await deleteDoc(doc(db, "Clothes", aClothing.id));
+        await deleteDoc(doc(db, `${userID}`, aClothing.id));
       };
 
     return(

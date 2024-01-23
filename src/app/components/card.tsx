@@ -38,7 +38,7 @@ export default function Card({ aClothing, userID }: { aClothing: any, userID: st
                 </button>
 
                 {/* image */}
-                <img alt="clothing" src="../img/jacket.png" width={225} height={225} className="p-4 group-hover:blur-sm z-0"/>
+                <img alt="clothing" src={aClothing.clothing.getImageUrl()} width={225} height={225} className="p-4 group-hover:blur-sm z-0"/>
             </div>
 
             {/* text hover */}

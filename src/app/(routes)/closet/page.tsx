@@ -12,7 +12,7 @@ import CardList from "../../components/cardList";
 import { FileUploader } from "react-drag-drop-files";
 import { useUser } from "../../auth/auth";
 import notLoggedIn from "../../components/notLoggedIn";
-import { ref, uploadBytes } from "firebase/storage";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { v4 } from "uuid";
 
 export default function Closet() {
@@ -41,6 +41,8 @@ export default function Closet() {
   //add data
   const [add, setAdd] = useState(false);
   const [file, setFile] = useState(null);
+  const [img, setImg] = useState<any | null>(null);
+
   const fileTypes = ["JPEG", "PNG", "GIF"];
 
   useEffect(() => {
@@ -59,7 +61,7 @@ export default function Closet() {
       });
 
       for (let i = 0; i < itemsArr.length; i++) {
-        let clothing = new Clothing(itemsArr[i].Name, itemsArr[i].Color, itemsArr[i].Type, itemsArr[i].Style);
+        let clothing = new Clothing(itemsArr[i].Name, itemsArr[i].Color, itemsArr[i].Type, itemsArr[i].Image, itemsArr[i].Style);
         clothesArr.push({clothing, id:itemsArr[i].id});
       }
 
@@ -72,9 +74,6 @@ export default function Closet() {
 
 
   //add clothing
-  const handleChange = (e:any) => {
-    setFile(file);
-  }
 
   //creates instance of a clothing class
   const createClothing = (e:any) => {
@@ -86,18 +85,28 @@ export default function Closet() {
 
   //adds clothing instance to firestore
   const addItem = async (someClothing:Clothing) => {
+    const imageID = v4();
+
+    if (userID != null && file != null) {
+      const imageRef = ref(storage, `${userID}/${imageID}`)
+      await uploadBytes(imageRef, file).then(data=> {
+        console.log(data,imageRef);
+        getDownloadURL(data.ref).then(val => {
+          console.log(val);
+          setImg(val);
+        })
+      });
+    }
+
+
     await addDoc(collection(db, `${userID}`), {
       Color: someClothing.getColor(),
       Material: someClothing.getMaterial(),
       Name: someClothing.getName(),
       Style: someClothing.getStyle(),
       Type: someClothing.getType(),
+      Image: img
     });
-
-    // if (userID != null && file != null) {
-    //   const imageRef = ref(storage, `${userID}/${v4()}`)
-    //   await uploadBytes(imageRef, file);
-    // }
     
   };
 
@@ -173,7 +182,7 @@ export default function Closet() {
           </div> 
         </div>
 
-        {/* add button */}
+        {/* add button, turn into a component! */}
         {add? <div className="absolute w-full h-full top-0 bg-black z-50 flex justify-center items-center bg-opacity-20">
           <div className="relative w-1/4 h-auto p-3 bg-white opacity-100 rounded-xl flex flex-col justify-center">
             <h1 className="text-center">Add a clothing</h1>
@@ -199,20 +208,34 @@ export default function Closet() {
               
               <br></br>
 
-              {/* <FileUploader 
+              <FileUploader 
                 multiple={false} 
                 handleChange={(e:any) => setFile(e)} 
                 types={fileTypes} 
                 name="file"
                 label="Upload or Drop a File"
                 required
-                /> */}
+                />
 
               <br></br>
-
               <button className="w-fit mt-6 p-2 px-3 bg-mocha-300 rounded-lg text-white hover:text-mocha-500 duration-300">Fold away</button>
             </form>
 
+            {/* or */}
+            <div className="my-4 flex items-center">
+                    <div className="border-t border-gray-300 flex-grow mr-3"></div>
+                    <span className="text-gray-500">or</span>
+                    <div className="border-t border-gray-300 flex-grow ml-3"></div>
+            </div>
+
+            <div className="text-gray-500 text-center">Upload from your favorite store:</div>
+
+            
+            {/* upload from your favorite store */}
+            <button className="mt-4 py-2 bg-red-700 text-white text-center rounded-lg "> Uniqlo </button> 
+
+
+            {/* X button */}
             <button onClick={()=>{setAdd(false)}} className="absolute top-0 right-0"><TiDelete className="text-3xl text-rose-600"/></button>
           </div>
         </div> : ''}

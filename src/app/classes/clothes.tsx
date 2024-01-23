@@ -8,13 +8,16 @@ class Clothing {
     
     private style = [];
 
+    private imageUrl = "";
+
     public starred:boolean = false;
 
     //constructor
-    public constructor(private name:string, private color:string, private type:string, material?:any, style?:any){
+    public constructor(private name:string, private color:string, private type:string, imageUrl?:string, material?:any, style?:any,){
         this.name = name;
         this.color = color;
         this.type = type;
+        if (imageUrl != undefined) { this.imageUrl = imageUrl; }
         if (material != undefined) { this.material = material; }
         if (style != undefined) { this.style = style; }
     }
@@ -31,6 +34,8 @@ class Clothing {
     public getName() { return this.name; }
 
     public getColor() { return this.color; }
+
+    public getImageUrl() { return this.imageUrl; }
 
     public getType() { return this.type; }
 

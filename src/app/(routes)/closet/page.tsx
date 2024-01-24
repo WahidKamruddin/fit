@@ -40,7 +40,7 @@ export default function Closet() {
 
   //add data
   const [add, setAdd] = useState(false);
-  const [file, setFile] = useState(null);
+  const [file, setFile] = useState<any | null>(null);
   const [img, setImg] = useState<any | null>(null);
 
   const fileTypes = ["JPEG", "PNG", "GIF"];
@@ -70,7 +70,7 @@ export default function Closet() {
       if (clothesArr.length >= 1) { setHasClothes(true); }
     })
 
-  }, [user,userID]);
+  }, [user,userID,img]);
 
 
   //add clothing
@@ -87,18 +87,16 @@ export default function Closet() {
   const addItem = async (someClothing:Clothing) => {
     const imageID = v4();
 
-    if (userID != null && file != null) {
-      const imageRef = ref(storage, `${userID}/${imageID}`)
+    const imageRef = ref(storage, `${userID}/${imageID}`)
       await uploadBytes(imageRef, file).then(data=> {
-        console.log(data,imageRef);
-        getDownloadURL(data.ref).then(val => {
-          console.log(val);
-          setImg(val);
-        })
-      });
-    }
-
-
+      console.log(data,imageRef);
+      getDownloadURL(data.ref).then(val => {
+        console.log(val);
+        setImg(val);
+      })
+    });
+    
+    
     await addDoc(collection(db, `${userID}`), {
       Color: someClothing.getColor(),
       Material: someClothing.getMaterial(),
@@ -107,6 +105,7 @@ export default function Closet() {
       Type: someClothing.getType(),
       Image: img
     });
+    
     
   };
 

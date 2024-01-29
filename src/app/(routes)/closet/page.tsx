@@ -82,29 +82,33 @@ export default function Closet() {
     console.log(file);
     addItem(someClothing);
   };
-
-  //adds clothing instance to firestore
-  const addItem = async (someClothing:Clothing) => {
-    const imageID = v4();
-
-    const imageRef = ref(storage, `${userID}/${imageID}`)
-      await uploadBytes(imageRef, file).then(data=> {
-      console.log(data,imageRef);
-      getDownloadURL(data.ref).then(val => {
-        console.log(val);
-        setImg(val);
-      })
-    });
-    
-    
+  
+  const addClothing = async (someClothing:any, img:any, imageID:any) => {
     await addDoc(collection(db, `${userID}`), {
       Color: someClothing.getColor(),
       Material: someClothing.getMaterial(),
       Name: someClothing.getName(),
       Style: someClothing.getStyle(),
       Type: someClothing.getType(),
-      Image: img
+      Image: img,
+      ImageID : imageID
     });
+  }
+
+  
+
+  //adds clothing instance to firestore
+  const addItem = async (someClothing:Clothing) => {
+    const imageID = v4();
+    const imageRef = ref(storage, `${userID}/${imageID}`)
+
+    await uploadBytes(imageRef, file).then(data=> {
+      console.log(data,imageRef);
+      getDownloadURL(data.ref).then(async val => { 
+        await addClothing(someClothing, val, imageID)
+      })
+    });
+        
     
     
   };

@@ -43,7 +43,7 @@ export default function Closet() {
   const [file, setFile] = useState<any | null>(null);
   const [img, setImg] = useState<any | null>(null);
 
-  const fileTypes = ["JPEG", "PNG", "GIF"];
+  const fileTypes = ["JPG", "JPEG", "PNG", "GIF"];
 
   useEffect(() => {
     if (user != null) {

@@ -4,6 +4,7 @@ import {AiOutlineStar, AiOutlineDelete} from "react-icons/ai"
 import { useState } from "react"
 import { deleteDoc, doc } from "firebase/firestore";
 import { db } from "../firebaseConfig/clientApp";
+import Clothing from "../classes/clothes";
 
 
 const Card = (props:any) => {
@@ -13,8 +14,8 @@ const Card = (props:any) => {
     const edit = props.edit;
     const select = props.select;
 
-    const handleOuterWear = (img:any, type:any) => {
-        props.handleOuterWear(img, type);
+    const handleOuterWear = (item:Clothing, id:any) => {
+        props.handleOuterWear(item,id);
     }
 
     const [isActive, setIsActive] = useState(true);
@@ -53,7 +54,7 @@ const Card = (props:any) => {
 
             {/* text hover */}
             {select? 
-            <button onClick={()=> handleOuterWear(aClothing.clothing.getImageUrl(), aClothing.clothing.getType())}className="absolute top-0 w-full h-full bg-transparent text-transparent group-hover:text-white flex justify-center items-center">
+            <button onClick={()=> handleOuterWear(aClothing.clothing, aClothing.id)}className="absolute top-0 w-full h-full bg-transparent text-transparent group-hover:text-white flex justify-center items-center">
                 <div className="h-fit">
                     <h1 className="relative">{aClothing.clothing.getName()}</h1>
                 </div>

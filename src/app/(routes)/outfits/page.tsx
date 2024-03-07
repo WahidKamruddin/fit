@@ -9,12 +9,9 @@ import {TiDelete} from "react-icons/ti";
 import { db, storage } from "../../firebaseConfig/clientApp";
 import { addDoc, collection, onSnapshot, query } from "firebase/firestore";
 import CardList from "../../components/cardList";
-import { FileUploader } from "react-drag-drop-files";
 import { useUser } from "../../auth/auth";
 import notLoggedIn from "../../components/notLoggedIn";
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
-import { v4 } from "uuid";
-import Card from "../../components/card";
+
 
 export default function Outfit() {
   //Define User
@@ -22,18 +19,19 @@ export default function Outfit() {
   const [userID, setUserID] = useState(null);
 
 
-  //Header states
-  const [outerWear, setOuterWear] = useState(null);
-  const [top, setTop] = useState(null);
-  const [bottom, setBottom] = useState(null);
-
+  //Clothing states
+  const [outerWear, setOuterWear] = useState <any | null>(null);
+  const [top, setTop] = useState <any | null>(null);
+  const [bottom, setBottom] = useState <any | null>(null);
 
 
   //fetch data states
   const [hasClothes, setHasClothes] = useState(false);
   const [cards, setCards] = useState([]);
+  const [outfits, setOutfits] = useState([]);
 
-  //add data
+
+  //add
   const [add, setAdd] = useState(false);
 
 
@@ -43,8 +41,11 @@ export default function Outfit() {
     }
 
     //fetches user data
-    const q = query(collection(db, `users/${userID}/clothes`));
-    const data = onSnapshot(q, (QuerySnapshot) => {
+    const c = query(collection(db, `users/${userID}/clothes`));
+    const o = query(collection(db, `users/${userID}/outfits`));
+
+    //fetch clothes
+    const cData = onSnapshot(c, (QuerySnapshot) => {
       let itemsArr :any = [];
       let clothesArr :any = [];
 
@@ -53,8 +54,27 @@ export default function Outfit() {
       });
 
       for (let i = 0; i < itemsArr.length; i++) {
-        let clothing = new Clothing(itemsArr[i].Name, itemsArr[i].Color, itemsArr[i].Type, itemsArr[i].Image, itemsArr[i].Style);
+        let clothing: Clothing | null = new Clothing(itemsArr[i].Name, itemsArr[i].Color, itemsArr[i].Type, itemsArr[i].Image, itemsArr[i].Style);
         clothesArr.push({clothing, id:itemsArr[i].id});
+        clothing = null;
+      }
+
+      setCards(clothesArr);
+
+      if (clothesArr.length >= 1) { setHasClothes(true); }
+    })
+
+    //fetch outfits
+    const oData = onSnapshot(c, (QuerySnapshot) => {
+      let itemsArr :any = [];
+      let outfitArr :any = [];
+
+      QuerySnapshot.forEach((doc) => {
+        itemsArr.push({...doc.data(), id: doc.id});
+      });
+
+      for (let i = 0; i < itemsArr.length; i++) {
+
       }
 
       setCards(clothesArr);
@@ -66,18 +86,40 @@ export default function Outfit() {
 
 
   //add clothing
-  const handleOuterWear = (img:any, type:any) => {
-    if (type == 'Outerwear') { setOuterWear(img); }
-    else if (type == 'Top') { setTop(img); }
-    else if (type == 'Bottom') { setBottom(img); }
+  const handleOuterWear = (item:Clothing, id:any) => {
+    let type = item.getType();
+    if (type == 'Outerwear') { setOuterWear([item,id]); }
+    else if (type == 'Top') { setTop([item,id]); }
+    else if (type == 'Bottom') { setBottom([item,id]); }
+    console.log(outerWear, top, bottom);
   };
 
+  //add outfit
+  const addOutfit = async (outerWear:any, top:any, bottom:any) => {
+    await addDoc(collection(db, `users/${userID}/outfits`), {
+      OuterWear: outerWear,
+      Top: top,
+      Bottom: bottom
+    });
+  }
+
+  //create outfit
+  const createOutfit = () => {  
+    if (outerWear && top && bottom) {
+      addOutfit(outerWear[1], top[1], bottom[1]);
+      exit();
+    } 
+  }
+  
+
+  //exit from add
   const exit = () => {
     setAdd(false);
     setOuterWear(null);
     setTop(null);
     setBottom(null);
   }
+
 
   return (
     <div>
@@ -110,22 +152,27 @@ export default function Outfit() {
             <h1 className="text-center">Add a clothing</h1>
             <div className="m-12 flex justify-between">
               <div className="w-64 h-64 bg-transparent border-2 border-gray-300 border-dashed flex justify-center items-center">
-                {outerWear? <img alt="clothing" src={outerWear} className="p-4 min-w-48 h-48 group-hover:blur-sm z-0"/>:
+                {outerWear? <img alt="clothing" src={outerWear[0].getImageUrl()} className="p-4 min-w-48 h-48 group-hover:blur-sm z-0"/>:
                 <p>Outerwear</p>}
               </div>
               <div className="w-64 h-64 bg-transparent border-2 border-gray-300 border-dashed flex justify-center items-center">
-                {top? <img alt="clothing" src={top} className="p-4 min-w-48 h-48 group-hover:blur-sm z-0"/>:
+                {top? <img alt="clothing" src={top[0].getImageUrl()} className="p-4 min-w-48 h-48 group-hover:blur-sm z-0"/>:
                 <p>top</p>}
               </div>
               <div className="w-64 h-64 bg-transparent border-2 border-gray-300 border-dashed flex justify-center items-center">
-                {bottom? <img alt="clothing" src={bottom} className="p-4 min-w-48 h-48 group-hover:blur-sm z-0"/>:
+                {bottom? <img alt="clothing" src={bottom[0].getImageUrl()} className="p-4 min-w-48 h-48 group-hover:blur-sm z-0"/>:
                 <p>Bottom</p>}
               </div>
+            </div>
+
+            <div className="w-full flex justify-center items-center">
+              <button onClick={createOutfit} className={`${outerWear && top && bottom && 'cursor-pointer'} bg-blue-100  cursor-not-allowed`}>Make Outfit</button>
             </div>
 
             <div className="w-full h-48">
               <CardList userID={userID} cards={cards} hasClothes={hasClothes} edit={false} select={true} handleOuterWear={handleOuterWear}/>
             </div>
+
 
             {/* Close add component */}
             <button onClick={exit} className="absolute top-0 right-0"><TiDelete className="text-3xl text-rose-600"/></button>

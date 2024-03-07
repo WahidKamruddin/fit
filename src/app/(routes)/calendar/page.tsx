@@ -2,13 +2,14 @@
 import { useEffect, useState } from "react";
 import { useUser } from "../../auth/auth";
 import { db, storage } from "../../firebaseConfig/clientApp";
-import { addDoc, collection, onSnapshot, query } from "firebase/firestore";
-import Calendar from 'react-calendar';
+import { addDoc, collection, onSnapshot, query} from "firebase/firestore";
 
 import notLoggedIn from "../../components/notLoggedIn";
 
 import Link from "next/link";
 import { add, eachDayOfInterval, endOfMonth, format, getDate, getDay, isEqual, isToday, parse, startOfMonth, startOfToday } from "date-fns";
+import { FirebaseError } from "firebase/app";
+import { Firestore } from "firebase/firestore";
 
 export default function Closet() {
   //Define User
@@ -26,10 +27,10 @@ export default function Closet() {
     //fetches user data
     const q = query(collection(db, `users/${userID}/calendar`));
 
-    const data = onSnapshot(q, (QuerySnapshot) => {
+    const data = onSnapshot(q, (QuerySnapshot:any) => {
       let itemsArr :any = [];
 
-      QuerySnapshot.forEach((doc) => {
+      QuerySnapshot.forEach((doc:any) => {
         itemsArr.push({...doc.data(), id: doc.id});
       });
 
@@ -59,18 +60,18 @@ export default function Closet() {
     setCurrentMonth (format (firstDayNextMonth, 'MMM-yyyy'))
   }
 
-  const renderOutfit = () => {
+//   const renderOutfit = () => {
 
-    for (let i = 0; i < outfitArr.length; i++) {
-      if (format(selectedDay, 'MMMM dd yyyy') == outfitArr[i].time){
-        setOutfit(outfitArr[i]);
-        return true;
-      }
-    } 
+//     for (let i = 0; i < outfitArr.length; i++) {
+//       if (format(selectedDay, 'MMMM dd yyyy') == outfitArr[i].time){
+//         setOutfit(outfitArr[i]);
+//         return true;
+//       }
+//     } 
 
-    setOutfit(null);
-    return false;
-}
+//     setOutfit(null);
+//     return false;
+// }
 
 
 
@@ -112,7 +113,7 @@ export default function Closet() {
                       <div>Sun</div>
                     </div>
                     <div className="grid grid-cols-7 mt-2 text-md text-black">
-                      {days.map((day:any, dayIdx) => (
+                      {days.map((day:any, dayIdx:any) => (
                         <div 
                           className={`
                           ${dayIdx === 0 && colStartClasses[getDay(day)]}

@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import Card from "./card";
+import Clothing from "../classes/clothes";
 
 const CardList = (props:any) => {
 
@@ -10,8 +11,8 @@ const CardList = (props:any) => {
     const select = props.select;
 
 
-    const handleOuterWear = (img:any, type:any) => {
-        props.handleOuterWear(img, type);
+    const handleOuterWear = (item:Clothing, id:any) => {
+        props.handleOuterWear(item,id);
     }
     
     return (

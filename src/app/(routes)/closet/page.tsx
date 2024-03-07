@@ -51,7 +51,7 @@ export default function Closet() {
     }
 
     //fetches user data
-    const q = query(collection(db, `${userID}`));
+    const q = query(collection(db, `users/${userID}/clothes`));
     const data = onSnapshot(q, (QuerySnapshot) => {
       let itemsArr :any = [];
       let clothesArr :any = [];
@@ -84,7 +84,7 @@ export default function Closet() {
   };
   
   const addClothing = async (someClothing:any, img:any, imageID:any) => {
-    await addDoc(collection(db, `${userID}`), {
+    await addDoc(collection(db, `users/${userID}/clothes`), {
       Color: someClothing.getColor(),
       Material: someClothing.getMaterial(),
       Name: someClothing.getName(),
@@ -157,33 +157,31 @@ export default function Closet() {
   return (
     <div>
       {user?
-      <div className="h-screen pt-16 bg-off-white-100 text-black relative"> 
-        <div className="mx-20">
-          <h1 className="text-4xl">{user.displayName}'s Closet</h1>
+      <div className="h-screen pt-16  bg-off-white-100 text-black"> 
+        <h1 className="text-4xl mx-20">{user.displayName.split(' ')[0]}'s Closet</h1>
 
-          {/* Header */}
-          <div className="mt-5 w-full flex justify-between">
-            <ul className="w-2/6 mt-4 text-xl font-light justify-self-start flex justify-between">
-              <li className="pb-1 border-b-2 border-transparent hover:border-black hover:duration-700"><button onClick={filterAll}>All</button></li>
-              <li className="pb-1 border-b-2 border-transparent hover:border-black hover:duration-700"><button onClick={filterOuterWear}>Outerwear</button></li>
-              <li className="pb-1 border-b-2 border-transparent hover:border-black hover:duration-700"><button onClick={filterTops}>Tops</button></li>
-              <li className="pb-1 border-b-2 border-transparent hover:border-black hover:duration-700"><button onClick={filterBottoms}>Bottoms</button></li>
-            </ul>
-            <div className="w-3/6 flex justify-center">
-              <div className="mx-8 mt-2 bg-mocha-150 text-white py-2 px-4 rounded-lg flex cursor-not-allowed">Sort by <BiSortAlt2 className="text-xl text-white"/> </div>
-              <div className="mx-8 p-2 mt-2 bg-mocha-150 rounded-3xl cursor-not-allowed"><HiViewGrid  className="text-2xl text-white"/></div>
-              <button onClick={()=>{setAdd(true)}} className="mx-8 p-2 mt-2 bg-mocha-150 rounded-3xl"><IoMdAdd className="text-2xl text-white"/></button>
-            </div>
-          </div> 
+        {/* Header */}
+        <div className="mt-5 mx-20 w-full flex justify-between">
+          <ul className="w-2/6 mt-4 text-xl font-light justify-self-start flex justify-between">
+            <li className="pb-1 border-b-2 border-transparent hover:border-black hover:duration-700"><button onClick={filterAll}>All</button></li>
+            <li className="pb-1 border-b-2 border-transparent hover:border-black hover:duration-700"><button onClick={filterOuterWear}>Outerwear</button></li>
+            <li className="pb-1 border-b-2 border-transparent hover:border-black hover:duration-700"><button onClick={filterTops}>Tops</button></li>
+            <li className="pb-1 border-b-2 border-transparent hover:border-black hover:duration-700"><button onClick={filterBottoms}>Bottoms</button></li>
+          </ul>
+          <div className="w-3/6 flex justify-center">
+            <div className="mx-8 mt-2 bg-mocha-150 text-white py-2 px-4 rounded-lg flex cursor-not-allowed">Sort by <BiSortAlt2 className="text-xl text-white"/> </div>
+            <div className="mx-8 p-2 mt-2 bg-mocha-150 rounded-3xl cursor-not-allowed"><HiViewGrid  className="text-2xl text-white"/></div>
+            <button onClick={()=>{setAdd(true)}} className="mx-8 p-2 mt-2 bg-mocha-150 rounded-3xl"><IoMdAdd className="text-2xl text-white"/></button>
+          </div>
+        </div> 
 
-          {/* Clothing cards */}
-          <div className="mt-10 w-full flex justify-center">
-            {all? <CardList userID={userID} cards={cards} hasClothes={hasClothes}/> 
-            : outerWear? <CardList userID={userID} cards={cards.filter((card:any) => card.clothing.type === 'Outerwear')} hasClothes={hasClothes}/> 
-            : tops? <CardList userID={userID} cards={cards.filter((card:any) => card.clothing.type === 'Top')} hasClothes={hasClothes}/> 
-            : bottoms? <CardList userID={userID} cards={cards.filter((card:any) => card.clothing.type === 'Bottom')} hasClothes={hasClothes}/> : <div></div>}
-          </div> 
-        </div>
+        {/* Clothing cards */}
+        <div className="mt-10 mx-20 h-4/6 flex justify-center">
+          {all? <CardList userID={userID} cards={cards} hasClothes={hasClothes} edit={true} select={false}/> 
+          : outerWear? <CardList userID={userID} cards={cards.filter((card:any) => card.clothing.type === 'Outerwear')} hasClothes={hasClothes} edit={true} select={false}/> 
+          : tops? <CardList userID={userID} cards={cards.filter((card:any) => card.clothing.type === 'Top')} hasClothes={hasClothes} edit={true} select={false}/> 
+          : bottoms? <CardList userID={userID} cards={cards.filter((card:any) => card.clothing.type === 'Bottom')} hasClothes={hasClothes} edit={true} select={false}/> : null}
+        </div> 
 
         {/* add button, turn into a component! */}
         {add? <div className="absolute w-full h-full top-0 bg-black z-50 flex justify-center items-center bg-opacity-20">

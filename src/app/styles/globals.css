@@ -52,5 +52,9 @@ body {
     transition: 0.75s;
 }
 
+.gemeni {
+    background-size: 200% 100%;
+    background-image: linear-gradient(to right, rgb(56 189 248), rgb(99 102 241), rgb(253 164 175), rgb(99 102 241), rgb(56 189 248));
 
+}
 

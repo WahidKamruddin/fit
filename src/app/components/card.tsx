@@ -6,10 +6,18 @@ import { deleteDoc, doc } from "firebase/firestore";
 import { db } from "../firebaseConfig/clientApp";
 
 
-export default function Card({ aClothing, userID }: { aClothing: any, userID: string }) {
+const Card = (props:any) => {
+    
+    const userID = props.userID;
+    const aClothing = props.aClothing;
+    const edit = props.edit;
+    const select = props.select;
+
+    const handleOuterWear = (img:any, type:any) => {
+        props.handleOuterWear(img, type);
+    }
 
     const [isActive, setIsActive] = useState(true);
-    const [isEdit, setIsEdit] = useState(false);
     
     function favorite() {
         setIsActive(!isActive);
@@ -22,14 +30,16 @@ export default function Card({ aClothing, userID }: { aClothing: any, userID: st
     }
 
     const deleteClothing = async (id:any) => {
-        await deleteDoc(doc(db, `${userID}`, aClothing.id));
+        await deleteDoc(doc(db, `users/${userID}/clothes`, aClothing.id));
       };
 
     return(
         <div className="relative bg-black rounded-xl group">
             <div className="relative bg-olive-100 rounded-xl select-none">
                 {/* delete */}
-                <button className="absolute top-0 right-0 m-1 text-center text-md text-red-600 bg-white rounded-xl drop-shadow-xl z-10" onClick={deleteClothing}><FaMinusCircle/></button>
+                {edit? 
+                <button className="absolute top-0 right-0 m-1 text-center text-md text-red-600 bg-white rounded-xl drop-shadow-xl z-10" onClick={deleteClothing}><FaMinusCircle/></button>:
+                null}
 
 
                 {/* favorite */}
@@ -38,17 +48,26 @@ export default function Card({ aClothing, userID }: { aClothing: any, userID: st
                 </button>
 
                 {/* image */}
-                <img alt="clothing" src={aClothing.clothing.getImageUrl()} width={225} height={225} className="p-4 group-hover:blur-sm z-0"/>
+                <img alt="clothing" src={aClothing.clothing.getImageUrl()} className="p-4 min-w-48 h-48 group-hover:blur-sm z-0"/>
             </div>
 
             {/* text hover */}
+            {select? 
+            <button onClick={()=> handleOuterWear(aClothing.clothing.getImageUrl(), aClothing.clothing.getType())}className="absolute top-0 w-full h-full bg-transparent text-transparent group-hover:text-white flex justify-center items-center">
+                <div className="h-fit">
+                    <h1 className="relative">{aClothing.clothing.getName()}</h1>
+                </div>
+            </button>:
             <div className="absolute top-0 w-full h-full bg-transparent text-transparent group-hover:text-white flex justify-center items-center">
                 <div className="h-fit">
                     <h1 className="relative">{aClothing.clothing.getName()}</h1>
                 </div>
             </div>
+            }
         </div>
         
     )
 }
 
+
+export default Card;

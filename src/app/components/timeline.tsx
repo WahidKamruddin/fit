@@ -26,7 +26,7 @@ export default function Timeline() {
                                 <div className="flex justify-start w-full mx-auto items-center">
                                     <div className="w-full sm:w-1/2 sm:pr-8">
                                         <div className="py-4 px-6 bg-mocha-400 text-white text-center rounded shadow">
-                                            Digital Closet <br></br>(Expected Nov 2023)
+                                            Digital Closet <br></br>(Expected Apr 2024)
                                         </div>
                                     </div>
                                 </div>
@@ -42,7 +42,7 @@ export default function Timeline() {
                                 <div className="flex justify-end w-full mx-auto items-center">
                                     <div className="w-full sm:w-1/2 sm:pl-8">
                                         <div className="py-4 px-6 bg-mocha-400 text-white  text-center rounded shadow">
-                                            AI Outfit Generator <br></br>(Expected Dec 2023)
+                                            AI Outfit Generator <br></br>(Expected Jun 2024)
                                         </div>
                                     </div>
                                 </div>
@@ -58,7 +58,7 @@ export default function Timeline() {
                                 <div className="flex justify-start w-full mx-auto items-center">
                                     <div className="w-full sm:w-1/2 sm:pr-8">
                                         <div className="py-4 px-6 bg-mocha-400 text-white text-center rounded shadow">
-                                            E-commerce <br></br>(Expected March 2024)
+                                            E-commerce <br></br>(Expected Sept 2024)
                                         </div>
                                     </div>
                                 </div>

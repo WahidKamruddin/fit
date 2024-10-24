@@ -3,7 +3,7 @@ import { setTimeout } from "timers/promises";
 import { useTypewriter } from "react-simple-typewriter";
 import Image from "next/image";
 
-export default function Outfits() {
+export default function aiOutfitFeature() {
 
     const [style] = useTypewriter({
         words: ["Minimal", "Casual", "Goth", "Formal", "Soft", "Old Money"],

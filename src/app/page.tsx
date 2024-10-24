@@ -2,7 +2,7 @@ import Contact from "./components/contact";
 import Hero from "./components/hero";
 import Timeline from "./components/timeline";
 import Closet from "./(routes)/closet/page";
-import Outfits from "./components/outfit";
+import Outfits from "./components/aiOutfitFeature";
 import Wardrobe from "./components/wardrobe";
 import Shop from "./components/shop";
 

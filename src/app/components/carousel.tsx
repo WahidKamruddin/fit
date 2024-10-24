@@ -1,6 +1,6 @@
 'use client'
 
-import Outfits from "./outfit";
+import Outfits from "./aiOutfitFeature";
 import Wardrobe from "./wardrobe";
 import Shop from "./shop";
 

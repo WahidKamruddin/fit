@@ -15,7 +15,7 @@ const Card = (props:any) => {
     const select = props.select;
 
     const handleOuterWear = (item:Clothing, id:any) => {
-        props.handleOuterWear(item,id);
+        props.handleOuterWear(item, id);
     }
 
     const [isActive, setIsActive] = useState(true);

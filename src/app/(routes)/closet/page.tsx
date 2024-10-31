@@ -7,7 +7,7 @@ import {IoMdAdd} from "react-icons/io";
 import {BiSortAlt2} from "react-icons/bi";
 import {TiDelete} from "react-icons/ti";
 import { db, storage } from "../../firebaseConfig/clientApp";
-import { addDoc, collection, onSnapshot, query } from "firebase/firestore";
+import { addDoc, collection, doc, onSnapshot, query, updateDoc } from "firebase/firestore";
 import CardList from "../../components/cardList";
 import { FileUploader } from "react-drag-drop-files";
 import { useUser } from "../../auth/auth";
@@ -40,6 +40,7 @@ export default function Closet() {
 
   //add data
   const [add, setAdd] = useState(false);
+  const [edit, setEdit] = useState(false);
   const [file, setFile] = useState<any | null>(null);
   const [img, setImg] = useState<any | null>(null);
 
@@ -172,15 +173,16 @@ export default function Closet() {
             <div className="mx-8 mt-2 bg-mocha-150 text-white py-2 px-4 rounded-lg flex cursor-not-allowed">Sort by <BiSortAlt2 className="text-xl text-white"/> </div>
             <div className="mx-8 p-2 mt-2 bg-mocha-150 rounded-3xl cursor-not-allowed"><HiViewGrid  className="text-2xl text-white"/></div>
             <button onClick={()=>{setAdd(true)}} className="mx-8 p-2 mt-2 bg-mocha-150 rounded-3xl"><IoMdAdd className="text-2xl text-white"/></button>
+            <button onClick={()=>{setEdit(!edit)}} className="mx-8 p-2 mt-2 bg-mocha-150 rounded-3xl"><IoMdAdd className="text-2xl text-white"/></button>
           </div>
         </div> 
 
         {/* Clothing cards */}
         <div className="mt-10 mx-20 h-4/6 flex justify-center">
-          {all? <CardList userID={userID} cards={cards} hasClothes={hasClothes} edit={true} select={false}/> 
-          : outerWear? <CardList userID={userID} cards={cards.filter((card:any) => card.clothing.type === 'Outerwear')} hasClothes={hasClothes} edit={true} select={false}/> 
-          : tops? <CardList userID={userID} cards={cards.filter((card:any) => card.clothing.type === 'Top')} hasClothes={hasClothes} edit={true} select={false}/> 
-          : bottoms? <CardList userID={userID} cards={cards.filter((card:any) => card.clothing.type === 'Bottom')} hasClothes={hasClothes} edit={true} select={false}/> : null}
+          {all? <CardList userID={userID} cards={cards} hasClothes={hasClothes} edit={edit} select={false}/> 
+          : outerWear? <CardList userID={userID} cards={cards.filter((card:any) => card.clothing.type === 'Outerwear')} hasClothes={hasClothes} edit={edit} select={false}/> 
+          : tops? <CardList userID={userID} cards={cards.filter((card:any) => card.clothing.type === 'Top')} hasClothes={hasClothes} edit={edit} select={false}/> 
+          : bottoms? <CardList userID={userID} cards={cards.filter((card:any) => card.clothing.type === 'Bottom')} hasClothes={hasClothes} edit={edit} select={false}/> : null}
         </div> 
 
         {/* add button, turn into a component! */}
@@ -240,6 +242,8 @@ export default function Closet() {
             <button onClick={()=>{setAdd(false)}} className="absolute top-0 right-0"><TiDelete className="text-3xl text-rose-600"/></button>
           </div>
         </div> : ''}
+
+
       </div> :      
         notLoggedIn()
       }

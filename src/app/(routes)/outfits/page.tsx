@@ -85,7 +85,7 @@ export default function Outfit() {
     });
   }, [user, userID]);
 
-  //add clothing
+  //add outfit
   const handleOuterWear = (item: Clothing, id: any) => {
     let type = item.getType();
     if (type == "Outerwear") {
@@ -155,13 +155,13 @@ export default function Outfit() {
             </div>
 
             {/* Outfit cards */}
-            <div className="absolute mt-12 w-fit h-full flex ">
-              <div className="w-6/8 h-3/4 flex flex-wrap overflow-y-scroll">
+            <div className="absolute mr-8 h-4/6 flex justify-center">
+              <div className="w-7/8 h-full flex flex-wrap justify-center overflow-y-scroll ">
               {outfits
                 ? outfits.map((something: any) => (
                     <div key={something.id}>
                       <div className="px-16">
-                        <OutfitCard userID={userID} outfit={something} clothes={cards}/>
+                        <OutfitCard userID={userID} outfit={something} clothes={cards} canEdit={true}/>
                       </div>
                     </div>
                   ))

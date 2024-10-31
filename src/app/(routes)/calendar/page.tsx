@@ -3,16 +3,18 @@
 import { useEffect, useState } from "react";
 import { useUser } from "../../auth/auth";
 import { db } from "../../firebaseConfig/clientApp";
-import { collection, onSnapshot, query } from "firebase/firestore";
-import { add, eachDayOfInterval, endOfMonth, format, getDay, isEqual, isToday, parse, startOfMonth, startOfToday } from "date-fns";
+import { collection, doc, onSnapshot, query, updateDoc } from "firebase/firestore";
+import {eachDayOfInterval, endOfMonth, format, getDay, isEqual, isToday, parse, startOfMonth, startOfToday } from "date-fns";
 import notLoggedIn from "../../components/notLoggedIn";
 import Clothing from "../../classes/clothes";
 import OutfitCard from "../../components/outfits";
+import { TiDelete } from "react-icons/ti";
+import { IoMdAdd } from "react-icons/io";
 
 // Define the Outfit type
 interface Outfit {
   id: string;
-  date: string; // The 'Mddyy' formatted date as a string
+  Date: string; // The 'Mddyy' formatted date as a string
   name?: string;
   description?: string;
 }
@@ -22,15 +24,13 @@ export default function Closet() {
   const [userID, setUserID] = useState<string | null>(null);
   const [outfitArr, setOutfitArr] = useState<Outfit[]>([]); // Define array of outfits
   const [outfit, setOutfit] = useState<Outfit | null>(null);
-
-  //Clothing states
-  const [outerWear, setOuterWear] = useState<any | null>(null);
-  const [top, setTop] = useState<any | null>(null);
-  const [bottom, setBottom] = useState<any | null>(null);
+  const [fit, setFit] = useState(null);
 
   //fetch data states
   const [hasClothes, setHasClothes] = useState(false);
   const [cards, setCards] = useState([]);
+
+  const [add, setAdd] = useState<boolean>(false);
   
   useEffect(() => {
     if (user) {
@@ -101,10 +101,10 @@ export default function Closet() {
   };
 
   const renderOutfit = () => {
-    const formattedSelectedDay = format(selectedDay, 'Mddyy'); // Format selected day to 'Mddyy'
+    const formattedSelectedDay = format(selectedDay, 'MMddyy'); // Format selected day to 'Mddyy'
 
     // Find the matching outfit
-    const matchingOutfit = outfitArr.find((outfit: Outfit) => outfit.date === formattedSelectedDay);
+    const matchingOutfit = outfitArr.find((outfit: Outfit) => outfit.Date === formattedSelectedDay);
 
     if (matchingOutfit) {
       setOutfit(matchingOutfit); // Set the matching outfit to state
@@ -117,6 +117,14 @@ export default function Closet() {
   useEffect(() => {
     renderOutfit();
   }, [selectedDay, outfitArr]);
+
+  const handleOutfit = async (id: any) => {
+    await updateDoc(doc(db, `users/${userID}/outfits/${id}`), {
+      Date: format(selectedDay, 'MMddyy'),
+    });
+
+    setAdd(false);
+  }
 
   return (
     <div>
@@ -184,13 +192,48 @@ export default function Closet() {
                   {/* Render the outfit details */}
                   <h2>theres an outfit</h2>
                   <p>yippee</p>
-                  <OutfitCard userID={userID} outfit={outfit} clothes={cards}/>
+                  <OutfitCard userID={userID} outfit={outfit} clothes={cards} deleteDate={true}/>
                 </div>
               ) : (
-                <p>No outfit for this day.</p>
+                <div>
+                  <p>No outfit for this day.</p>
+                  <p>{format(selectedDay, 'MMddyy')}</p>
+                  <button onClick={()=>{setAdd(true)}} className="mx-8 p-2 mt-2 bg-mocha-150 rounded-3xl"><IoMdAdd className="text-2xl text-white"/></button>
+                </div>
               )}
             </div>
           </div>
+
+          {/* add button, turn into a component! */}
+        {add? <div className="absolute w-full h-full top-0 bg-black z-50 flex justify-center items-center bg-opacity-20">
+          <div className="w-3/4 h-4/6 p-3 bg-white opacity-100 rounded-xl">
+            <div className="h-4/6 flex justify-center">
+                <div className="w-7/8 h-full flex flex-wrap justify-center overflow-y-scroll ">
+                {outfitArr
+                  ? outfitArr.map((something: any) => (
+                      <div key={something.id}>
+                        <div className="">
+                          <button className={fit === something.id ? "bg-indigo-400 text-white" : "bg-white"} onClick={()=> setFit(something.id)}><OutfitCard userID={userID} outfit={something} clothes={cards} canEdit={false} deleteDate={true}/></button>
+                        </div>
+                      </div>
+                    ))
+                  : null}
+                </div>
+              </div>
+            
+            
+              <button 
+                className="w-fit mt-6 p-2 px-3 bg-mocha-300 rounded-lg text-white hover:text-mocha-500 duration-300" 
+                onClick={() => fit && handleOutfit(fit)} 
+                disabled={!fit}
+              >
+                Fold away
+            </button>
+          
+            {/* X button */}
+            <button onClick={()=>{setAdd(false)}} className="absolute top-0 right-0"><TiDelete className="text-3xl text-rose-600"/></button>
+          </div>
+        </div> : ''}
         </div>
       ) : (
         notLoggedIn()

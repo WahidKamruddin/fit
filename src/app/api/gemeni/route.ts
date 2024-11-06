@@ -14,7 +14,7 @@ import path from "path";
 
 
 
-
+export async function GET (request: Request) {
   const API_KEY = process.env.GEMENI_PUBLIC_API_KEY || "";
   const image = path.join(process.cwd(), 'public', 'img', 'jacket.png');
   const fileManager = new GoogleAIFileManager(API_KEY);
@@ -65,7 +65,7 @@ import path from "path";
 
 
 
-export async function GET (request: Request) {
+export async function POST (request: Request) {
   console.log("post method");
   return new Response(JSON.stringify({ hello: "world" }), {
     status: 200,

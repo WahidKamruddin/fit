@@ -17,6 +17,8 @@
     "caniuse-lite": "^1.0.30001669",
     "date-fns": "^3.3.1",
     "firebase": "^10.8.1",
+    "formidable": "^3.5.2",
+    "fs": "^0.0.1-security",
     "next": "^14.0.4",
     "prompt-sync": "^4.2.0",
     "react": "latest",
@@ -31,6 +33,7 @@
     "uuid": "^9.0.1"
   },
   "devDependencies": {
+    "@types/formidable": "^3.4.5",
     "@types/node": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",

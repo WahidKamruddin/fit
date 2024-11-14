@@ -1,23 +1,28 @@
-import {AiFillInstagram, AiFillLinkedin, AiFillGithub} from "react-icons/ai";
-import {BsBell} from "react-icons/bs";
-import {TbLetterW,TbLetterK} from "react-icons/tb";
+import {AiOutlineInstagram, AiFillInstagram, AiFillLinkedin, AiFillGithub} from "react-icons/ai";
 
+const Contact = () => {
+    return (
+        <div className="h-screen bg-mocha-300">
+            <svg width="0" height="0">
+                <linearGradient id="instagram" x1="100%" y1="100%" x2="0%" y2="0%">
+                    <stop stop-color="#f09433" offset="0%" />
+                    <stop stop-color="#e6683c" offset="25%" />
+                    <stop stop-color="#dc2743" offset="50%" />
+                    <stop stop-color="#cc2366" offset="75%" />
+                    <stop stop-color="#bc1888" offset="100%" />
+                </linearGradient>
+            </svg>
 
-export default function Contact() {
-    return(
-        <div id="notif" className="h-screen bg-mocha-500 text-white">
-            <h1 className="pt-16 text-4xl text-center">Get Notified</h1>
-            <div className="text-xl flex flex-col items-center ">
-                <h2 className="mt-16 text-center">Lose the pile of clothes on your bed. Sign up for FIT Beta.</h2>
-                <button className="mt-10 text-lg py-2 px-4 bg-transparent text-white text-center rounded-xl border-2 border-white hover:border-mocha-100 hover:text-mocha-300 duration-500 flex items-center"><a href="https://forms.gle/fedR43dq635K6jdH7" target="_blank" rel="noreferrer" className="mr-2">Notify Me</a><BsBell/></button>
-            </div>
-
-            <h2 className="mt-32 text-xl text-center">More of me here:</h2>
-            <div className="w-full mt-16 flex justify-center">
-                <a href="https://www.linkedin.com/in/wahid-kamruddin-191248209/" target="_blank" rel="noreferrer"><AiFillLinkedin size={70} className="mx-4 rounded-xl hover:scale-110 hover:fill-mocha-100 duration-500"/></a>
-                <div className="flex justify-center items-center"><a href="https://wahidkamruddin.netlify.app/" target="_blank" className="mx-4 py-4 px-4 bg-white flex rounded-3xl hover:scale-110 hover:bg-mocha-100 duration-500 " ><TbLetterW size={30} className="text-mocha-500"/><TbLetterK size={30} className="text-mocha-500"/></a></div>
-                <a href="https://github.com/WahidKamruddin" target="_blank" rel="noreferrer"><AiFillGithub size={70} className="mx-4 hover:scale-110 hover:fill-mocha-100 duration-500"/></a>
+            <div className="p-28">
+                <h1 className="mt-24 text-7xl text-mocha-500">Keep in touch</h1>
+                <div className="w-full h-3/4 my-36 flex justify-center items-center">
+                    <a href="https://www.linkedin.com/in/wahid-kamruddin/" target="_blank" rel="noreferrer"><AiFillLinkedin size={150} className="mx-8 rounded-2xl fill-mocha-500 hover:scale-110 hover:fill-sky-600 duration-500"/></a>
+                    <a href="https://www.instagram.com/wahidkamruddin/" target="_blank" rel="noreferrer"><AiFillInstagram size={150} className="mx-8 fill-mocha-500 hover:fill-[url(#instagram)] hover:scale-110 duration-500"/></a>
+                    <a href="https://github.com/WahidKamruddin" target="_blank" rel="noreferrer"><AiFillGithub size={150} className="mx-8 fill-mocha-500 hover:scale-110 hover:fill-obsidian-100 duration-500"/></a>
+                </div>
             </div>
         </div>
-    )
+    );
 }
+ 
+export default Contact;

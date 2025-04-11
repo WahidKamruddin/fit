@@ -185,13 +185,13 @@ export default function Closet() {
   };
 
   return (
-    <div>
+    <>
       {user ?
-        <div className="h-screen pt-16 bg-off-white-100 text-black">
+        <div className="h-screen w-fit bg-off-white-100 text-black">
           <h1 className="text-4xl mx-20">{user.displayName.split(' ')[0]}'s Closet</h1>
 
           {/* Header */}
-          <div className="mt-5 mx-20 w-full flex justify-between">
+          <div className="mt-5 mx-20 flex justify-between">
             <ul className="w-2/6 mt-4 text-xl font-light justify-self-start flex justify-between">
               <li className="pb-1 border-b-2 border-transparent hover:border-black hover:duration-700"><button onClick={filterAll}>All</button></li>
               <li className="pb-1 border-b-2 border-transparent hover:border-black hover:duration-700"><button onClick={filterOuterWear}>Outerwear</button></li>
@@ -273,6 +273,6 @@ export default function Closet() {
         </div> :
         notLoggedIn()
       }
-    </div>
+    </>
   )
 }

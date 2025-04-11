@@ -16,7 +16,6 @@ import {
 } from "lucide-react"
 
 import { NavMain } from "./nav-main"
-import { NavProjects } from "./nav-projects"
 import { NavUser } from "./nav-user"
 import { TeamSwitcher } from "./team-switcher"
 import {
@@ -26,49 +25,41 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "./ui/sidebar"
+import { useUser } from "../auth/auth"
+import { useState } from "react"
+
+
+
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const user = useUser();
+  const displayName = user ? user.displayName : "...";
+  const avatar = user? user.photoURL : "/avatars/shadcn.jpg"
 
 // This is sample data.
 const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
+  userData: {
+    name: displayName,
+    avatar: avatar,
   },
-  teams: [
-    {
-      name: "Acme Inc",
-      logo: GalleryVerticalEnd,
-      plan: "Enterprise",
-    },
-    {
-      name: "Acme Corp.",
-      logo: AudioWaveform,
-      plan: "Startup",
-    },
-    {
-      name: "Evil Corp.",
-      logo: Command,
-      plan: "Free",
-    },
-  ],
+
   navMain: [
     {
-      title: "Closet",
-      url: "#",
+      title: "Clothes",
+      url: "",
       icon: Shirt,
       isActive: true,
       items: [
         {
           title: "Clothing",
-          url: "#",
+          url: "/closet",
         },
         {
           title: "Outfits",
-          url: "#",
+          url: "/outfits",
         },
         {
-          title: "Acessories",
-          url: "#",
+          title: "Calendar",
+          url: "/calendar",
         },
       ],
     },
@@ -139,18 +130,16 @@ const data = {
     },
   ]
 }
-
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        <TeamSwitcher />
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={data.userData} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

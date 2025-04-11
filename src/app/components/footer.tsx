@@ -1,6 +1,6 @@
 export default function Footer() {
     return(
-        <div id="footer" className=" bg-transparent flex">
+        <div id="footer" className="bg-transparent flex">
             <ul className="w-full mr-1 py-6 text-md font-light flex justify-evenly">
                 <li className="w-auto mx-4"><a href="https://www.linkedin.com/in/wahid-kamruddin-191248209/" target="blank">Wahid Kamruddin</a></li>
                 <li className="w-auto mx-4"><a href="mailto:wahidkamruddin101@gmail.com" target="_blank">Contact</a></li>

@@ -19,7 +19,6 @@ export default function RootLayout({
     <html className="scroll-smooth" lang="en">
       <body className={inter.className}>
         {children}
-        <Footer/>
         </body>
     </html>
   )

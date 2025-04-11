@@ -47,6 +47,7 @@ const OutfitCard = (props:any) => {
         <div className="relative my-12">
             {edit? <button className="absolute top-0 right-0 p-2 bg-red-600 rounded-xl" onClick={deleteOutfit}></button> : null}
             {date? <button className="absolute top-0 right-0 p-2 bg-red-600 rounded-xl" onClick={deleteDate}></button> : null}
+            
             {oWImg?  <div className=""><img src={oWImg}  className="p-4 min-w-48 h-48"/></div> : null}
             {topImg? <div className="absolute top-10"><img src={topImg} className="p-4 min-w-48 h-48"/></div> : null}
             {botImg? <div className="absolute top-20"><img src={botImg} className="p-4 min-w-48 h-48"/></div> : null}

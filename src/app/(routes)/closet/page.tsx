@@ -187,7 +187,7 @@ export default function Closet() {
   return (
     <>
       {user ?
-        <div className="h-screen w-fit bg-off-white-100 text-black">
+        <div className="h-screen bg-off-white-100 text-black">
           <h1 className="text-4xl mx-20">{user.displayName.split(' ')[0]}'s Closet</h1>
 
           {/* Header */}

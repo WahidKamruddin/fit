@@ -10,8 +10,10 @@ import {
   GalleryVerticalEnd,
   Map,
   PieChart,
+  Settings,
   Settings2,
   Shirt,
+  ShoppingCart,
   SquareTerminal,
 } from "lucide-react"
 
@@ -44,13 +46,13 @@ const data = {
 
   navMain: [
     {
-      title: "Clothes",
+      title: "Fashion",
       url: "",
       icon: Shirt,
       isActive: true,
       items: [
         {
-          title: "Clothing",
+          title: "Closet",
           url: "/closet",
         },
         {
@@ -66,7 +68,7 @@ const data = {
     {
       title: "Library",
       url: "#",
-      icon: Bot,
+      icon: BookOpen,
       items: [
         {
           title: "Blog",
@@ -83,32 +85,24 @@ const data = {
       ],
     },
     {
-      title: "Documentation",
+      title: "Shop",
       url: "#",
-      icon: BookOpen,
+      icon: ShoppingCart,
       items: [
         {
-          title: "Introduction",
+          title: "Buy",
           url: "#",
         },
         {
-          title: "Get Started",
+          title: "Sell",
           url: "#",
-        },
-        {
-          title: "Tutorials",
-          url: "#",
-        },
-        {
-          title: "Changelog",
-          url: "#",
-        },
+        }
       ],
     },
     {
       title: "Settings",
       url: "#",
-      icon: Settings2,
+      icon: Settings,
       items: [
         {
           title: "General",

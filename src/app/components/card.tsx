@@ -36,7 +36,7 @@ const Card = (props:any) => {
 
     return(
         <div className="relative bg-black rounded-xl group">
-            <div className="relative bg-olive-100 rounded-xl select-none">
+            <div className="relative bg-gray-100 border-2 rounded-xl select-none">
                 {/* delete */}
                 {edit? 
                 <button className="absolute top-0 right-0 m-1 text-center text-md text-red-600 bg-white rounded-xl drop-shadow-xl z-10" onClick={deleteClothing}><FaMinusCircle/></button>:
@@ -44,7 +44,7 @@ const Card = (props:any) => {
 
 
                 {/* favorite */}
-                <button className="absolute top-2 left-2 text-xl text-white cursor-pointer z-10">
+                <button className="absolute top-2 left-2 text-xl text-yellow-500 cursor-pointer z-10">
                     {isActive? <AiOutlineStar onClick={() => favorite()}/>:<FaStar onClick={() => unfavorite()} className="text-amber-500"/>}
                 </button>
 

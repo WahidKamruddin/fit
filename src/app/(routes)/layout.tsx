@@ -8,12 +8,16 @@ import {
   SidebarTrigger,
 } from "../components/ui/sidebar";
 
+import { ClosetProvider } from "../providers/closetContext";
+
+
 export default function loggedInLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
+    <ClosetProvider>
     <SidebarProvider >
       <AppSidebar />
       <SidebarInset>
@@ -41,9 +45,12 @@ export default function loggedInLayout({
                   </Breadcrumb> */}
           </div>
         </header>
-        <div className="h-full">{children}</div>
-        <Footer/>
+        <div className="h-full">
+          {children}
+          <Footer/>
+          </div>
       </SidebarInset>
     </SidebarProvider>
+    </ClosetProvider>
   );
 }

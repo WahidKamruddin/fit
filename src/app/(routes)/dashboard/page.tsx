@@ -1,76 +1,54 @@
-'use client'
+import Link from "next/link"
+import { AppSidebar } from "../../components/app-sidebar"
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "../../components/ui/breadcrumb"
+import { Separator } from "../../components/ui/separator"
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "../../components/ui/sidebar"
 
-import Clothing from "../../classes/clothes";
-import { useEffect, useState } from "react";
-import { PiSparkleFill } from "react-icons/pi";
-import { FaCalendarAlt } from "react-icons/fa";
-
-import {HiViewGrid} from "react-icons/hi";
-import {IoMdAdd} from "react-icons/io";
-import {BiSortAlt2} from "react-icons/bi";
-import {TiDelete} from "react-icons/ti";
-import { db, storage } from "../../firebaseConfig/clientApp";
-import { addDoc, collection, onSnapshot, query } from "firebase/firestore";
-import CardList from "../../components/cardList";
-import { FileUploader } from "react-drag-drop-files";
-import { useUser } from "../../auth/auth";
-import notLoggedIn from "../../components/notLoggedIn";
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
-import { v4 } from "uuid";
-import Link from "next/link";
-
-export default function Closet() {
-  //Define User
-  const user = useUser();
-  const [userID, setUserID] = useState(null);
-
-  
-  useEffect(() => {
-    if (user != null) {
-      setUserID(user.uid);
-    }
-
-
-  }, [user,userID]);
-
-
-
+export default function Page() {
   return (
-    <div>
-      {user?
-      <div className="h-screen pt-16 bg-off-white-100 text-black relative"> 
-          <h1 className="mx-20 text-4xl">{user.displayName.split(' ')[0]}'s Dashboard</h1>  
-
-          <div className="flex w-full h-full py-10 px-20 text-center">
-            <div className="mr-6 w-7/12 flex flex-col justify-between">
-                <div className="w-full flex justify-between">
-                    <div className="w-7/12 h-14 rounded-2xl flex justify-center items-center"> 
-                      <span className="text-lg bg-clip-text text-transparent gemeni bg-left hover:bg-right duration-500 ease-in-out">Generate with Gemeni</span>
-                    </div>
-                    <div className="bg-gray-300 w-1/12 rounded-2xl flex justify-center items-center text-2xl">  <Link href='/calendar'><FaCalendarAlt/> </Link> </div>
-                </div>
-
-                <Link href="/outfits"><div className="w-full h-72 bg-gray-300 rounded-2xl flex justify-center items-center text-2xl">My Outfits</div></Link>
-
-                <Link href='/closet'><div className="mb-8 w-full h-48 bg-gray-300 rounded-2xl flex justify-center items-center text-2xl">My Closet</div></Link>
-            </div>
-
-            <div className="ml-6 w-5/12 flex flex-col justify-between">
-                <div className="w-full h-5/6 bg-gray-300 rounded-2xl flex justify-center items-center text-2xl cursor-not-allowed">
-                  Coming Soon!
-                </div>
-                <div className="my-8 w-full h-1/6 flex justify-evenly">
-                    <div className="p-12 bg-gray-300 rounded-2xl"></div>
-                    <div className="p-12 bg-gray-300 rounded-2xl"></div>
-                    <div className="p-12 bg-gray-300 rounded-2xl"></div>
-                    <div className="p-12 bg-gray-300 rounded-2xl"></div>
-                </div>
-            </div>
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
+          <div className="flex items-center gap-2 px-4">
+            <SidebarTrigger className="-ml-1" />
+            <Separator orientation="vertical" className="mr-2 h-4" />
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem className="hidden md:block">
+                  <BreadcrumbLink href="#">
+                    Building Your Application
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator className="hidden md:block" />
+                <BreadcrumbItem>
+                  <BreadcrumbPage>Data Fetching</BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
           </div>
-      </div> :      
-        notLoggedIn()
-      }
-    </div>
+        </header>
+        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+          <div className="grid auto-rows-min gap-4 md:grid-cols-3">
+            <Link href="/closet" className="aspect-video rounded-xl bg-muted/50">Closet</Link>
+            <Link href="/outfits" className="aspect-video rounded-xl bg-muted/50">Outfit</Link>
+            <Link href="/calendar" className="aspect-video rounded-xl bg-muted/50">Calendar</Link>
+            <span className="text-lg bg-clip-text text-transparent gemeni bg-left hover:bg-right duration-500 ease-in-out">Generate with Gemeni</span>
+          </div>
+          <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min" />
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
   )
 }
- 

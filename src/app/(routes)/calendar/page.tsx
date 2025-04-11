@@ -4,12 +4,13 @@ import { useEffect, useState } from "react";
 import { useUser } from "../../auth/auth";
 import { db } from "../../firebaseConfig/clientApp";
 import { collection, doc, onSnapshot, query, updateDoc } from "firebase/firestore";
-import {eachDayOfInterval, endOfMonth, format, getDay, isEqual, isToday, parse, startOfMonth, startOfToday } from "date-fns";
+import { add, eachDayOfInterval, endOfMonth, format, getDay, isEqual, isToday, parse, startOfMonth, startOfToday } from "date-fns";
 import notLoggedIn from "../../components/notLoggedIn";
 import Clothing from "../../classes/clothes";
 import OutfitCard from "../../components/outfits";
 import { TiDelete } from "react-icons/ti";
 import { IoMdAdd } from "react-icons/io";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 
 // Define the Outfit type
 interface Outfit {
@@ -30,8 +31,8 @@ export default function Closet() {
   const [hasClothes, setHasClothes] = useState(false);
   const [cards, setCards] = useState([]);
 
-  const [add, setAdd] = useState<boolean>(false);
-  
+  const [addButton, setAddButton] = useState<boolean>(false);
+
   useEffect(() => {
     if (user) {
       setUserID(user.uid);
@@ -101,16 +102,16 @@ export default function Closet() {
   };
 
   const renderOutfit = () => {
-    const formattedSelectedDay = format(selectedDay, 'MMddyy'); // Format selected day to 'Mddyy'
+    const formattedSelectedDay = format(selectedDay, 'MMddyy');
 
-    // Find the matching outfit
+
     const matchingOutfit = outfitArr.find((outfit: Outfit) => outfit.Date === formattedSelectedDay);
 
     if (matchingOutfit) {
-      setOutfit(matchingOutfit); // Set the matching outfit to state
+      setOutfit(matchingOutfit);
       console.log(outfit);
     } else {
-      setOutfit(null); // No outfit for the selected day
+      setOutfit(null);
     }
   };
 
@@ -123,7 +124,7 @@ export default function Closet() {
       Date: format(selectedDay, 'MMddyy'),
     });
 
-    setAdd(false);
+    setAddButton(false);
   }
 
   return (
@@ -143,10 +144,10 @@ export default function Closet() {
                   </span>
                   <div className="flex items-center">
                     <button aria-label="calendar backward" onClick={prevMonth} className="text-gray-800 hover:text-gray-400">
-                      {/* Left arrow SVG */}
+                      <ArrowLeft />
                     </button>
                     <button aria-label="calendar forward" onClick={nextMonth} className="ml-3 text-gray-800 hover:text-gray-400">
-                      {/* Right arrow SVG */}
+                      <ArrowRight />
                     </button>
                   </div>
                 </div>
@@ -192,48 +193,48 @@ export default function Closet() {
                   {/* Render the outfit details */}
                   <h2>theres an outfit</h2>
                   <p>yippee</p>
-                  <OutfitCard userID={userID} outfit={outfit} clothes={cards} deleteDate={true}/>
+                  <OutfitCard userID={userID} outfit={outfit} clothes={cards} deleteDate={true} />
                 </div>
               ) : (
                 <div>
                   <p>No outfit for this day.</p>
                   <p>{format(selectedDay, 'MMddyy')}</p>
-                  <button onClick={()=>{setAdd(true)}} className="mx-8 p-2 mt-2 bg-mocha-150 rounded-3xl"><IoMdAdd className="text-2xl text-white"/></button>
+                  <button onClick={() => { setAddButton(true) }} className="mx-8 p-2 mt-2 bg-mocha-150 rounded-3xl"><IoMdAdd className="text-2xl text-white" /></button>
                 </div>
               )}
             </div>
           </div>
 
           {/* add button, turn into a component! */}
-        {add? <div className="absolute w-full h-full top-0 bg-black z-50 flex justify-center items-center bg-opacity-20">
-          <div className="w-3/4 h-4/6 p-3 bg-white opacity-100 rounded-xl">
-            <div className="h-4/6 flex justify-center">
+          {addButton ? <div className="absolute w-full h-full top-0 bg-black z-50 flex justify-center items-center bg-opacity-20">
+            <div className="w-3/4 h-4/6 p-3 bg-white opacity-100 rounded-xl">
+              <div className="h-4/6 flex justify-center">
                 <div className="w-7/8 h-full flex flex-wrap justify-center overflow-y-scroll ">
-                {outfitArr
-                  ? outfitArr.map((something: any) => (
+                  {outfitArr
+                    ? outfitArr.map((something: any) => (
                       <div key={something.id}>
                         <div className="">
-                          <button className={fit === something.id ? "bg-indigo-400 text-white" : "bg-white"} onClick={()=> setFit(something.id)}><OutfitCard userID={userID} outfit={something} clothes={cards} canEdit={false} deleteDate={true}/></button>
+                          <button className={fit === something.id ? "bg-indigo-400 text-white" : "bg-white"} onClick={() => setFit(something.id)}><OutfitCard userID={userID} outfit={something} clothes={cards} canEdit={false} deleteDate={true} /></button>
                         </div>
                       </div>
                     ))
-                  : null}
+                    : null}
                 </div>
               </div>
-            
-            
-              <button 
-                className="w-fit mt-6 p-2 px-3 bg-mocha-300 rounded-lg text-white hover:text-mocha-500 duration-300" 
-                onClick={() => fit && handleOutfit(fit)} 
+
+
+              <button
+                className="w-fit mt-6 p-2 px-3 bg-mocha-300 rounded-lg text-white hover:text-mocha-500 duration-300"
+                onClick={() => fit && handleOutfit(fit)}
                 disabled={!fit}
               >
                 Fold away
-            </button>
-          
-            {/* X button */}
-            <button onClick={()=>{setAdd(false)}} className="absolute top-0 right-0"><TiDelete className="text-3xl text-rose-600"/></button>
-          </div>
-        </div> : ''}
+              </button>
+
+              {/* X button */}
+              <button onClick={() => { setAddButton(false) }} className="absolute top-0 right-0"><TiDelete className="text-3xl text-rose-600" /></button>
+            </div>
+          </div> : ''}
         </div>
       ) : (
         notLoggedIn()

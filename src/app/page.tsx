@@ -5,10 +5,12 @@ import Closet from "./(routes)/closet/page";
 import Outfits from "./components/aiOutfitFeature";
 import Wardrobe from "./components/wardrobe";
 import Shop from "./components/shop";
+import Navbar from "./components/navbar";
 
 export default function Home() {
   return (
     <div>
+      <Navbar/>
       <Hero/>
       <Wardrobe/>
       <hr/>

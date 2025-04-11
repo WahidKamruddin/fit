@@ -28,6 +28,7 @@
     "firebase": "^10.8.1",
     "formidable": "^3.5.2",
     "fs": "^0.0.1-security",
+    "lucide": "^0.487.0",
     "lucide-react": "^0.484.0",
     "next": "^14.0.4",
     "prompt-sync": "^4.2.0",

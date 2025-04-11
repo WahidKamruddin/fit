@@ -11,6 +11,7 @@ import {
   Map,
   PieChart,
   Settings2,
+  Shirt,
   SquareTerminal,
 } from "lucide-react"
 
@@ -52,40 +53,40 @@ const data = {
   ],
   navMain: [
     {
-      title: "Playground",
+      title: "Closet",
       url: "#",
-      icon: SquareTerminal,
+      icon: Shirt,
       isActive: true,
       items: [
         {
-          title: "History",
+          title: "Clothing",
           url: "#",
         },
         {
-          title: "Starred",
+          title: "Outfits",
           url: "#",
         },
         {
-          title: "Settings",
+          title: "Acessories",
           url: "#",
         },
       ],
     },
     {
-      title: "Models",
+      title: "Library",
       url: "#",
       icon: Bot,
       items: [
         {
-          title: "Genesis",
+          title: "Blog",
           url: "#",
         },
         {
-          title: "Explorer",
+          title: "Articles",
           url: "#",
         },
         {
-          title: "Quantum",
+          title: "Fashion",
           url: "#",
         },
       ],
@@ -136,24 +137,7 @@ const data = {
         },
       ],
     },
-  ],
-  projects: [
-    {
-      name: "Design Engineering",
-      url: "#",
-      icon: Frame,
-    },
-    {
-      name: "Sales & Marketing",
-      url: "#",
-      icon: PieChart,
-    },
-    {
-      name: "Travel",
-      url: "#",
-      icon: Map,
-    },
-  ],
+  ]
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -164,7 +148,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={data.user} />

@@ -14,6 +14,8 @@ import { useUser } from "../../auth/auth";
 import notLoggedIn from "../../components/notLoggedIn";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { v4 } from "uuid";
+import { useCloset } from "../../providers/closetContext";
+
 
 export default function Closet() {
   // Define User
@@ -32,8 +34,7 @@ export default function Closet() {
   const [clothingType, setClothingType] = useState('');
 
   // Fetch data states
-  const [hasClothes, setHasClothes] = useState(false);
-  const [cards, setCards] = useState([]);
+  const { cards, hasClothes } = useCloset();
 
   // Add data states
   const [add, setAdd] = useState(false);
@@ -49,35 +50,7 @@ export default function Closet() {
       setUserID(user.uid);
     }
 
-    // Fetch user data from Firestore
-    const q = query(collection(db, `users/${userID}/clothes`));
-    const unsubscribe = onSnapshot(q, (QuerySnapshot) => {
-      let itemsArr: any = [];
-      let clothesArr: any = [];
-
-      // Populate items array with fetched data
-      QuerySnapshot.forEach((doc) => {
-        itemsArr.push({ ...doc.data(), id: doc.id });
-      });
-
-      // Create Clothing objects from fetched data
-      for (let i = 0; i < itemsArr.length; i++) {
-        let clothing = new Clothing(itemsArr[i].Name, itemsArr[i].Color, itemsArr[i].Type, itemsArr[i].Image, itemsArr[i].Style);
-        clothesArr.push({ clothing, id: itemsArr[i].id });
-      }
-
-      setCards(clothesArr);
-
-      // Update hasClothes state based on fetched data
-      if (clothesArr.length >= 1) {
-        setHasClothes(true);
-      }
-    });
-
-    // Cleanup subscription on unmount
-    return () => unsubscribe();
-
-  }, [user, userID, img]);
+  }, [user, userID]);
 
   // Function to handle background removal
   const handleBackgroundRemoval = async () => {
@@ -188,15 +161,15 @@ export default function Closet() {
     <>
       {user ?
         <div className="h-screen bg-off-white-100 text-black">
-          <h1 className="text-4xl mx-20">{user.displayName.split(' ')[0]}'s Closet</h1>
+          <h1 className="pt-16 text-4xl mx-20">{user.displayName.split(' ')[0]}'s Closet</h1>
 
           {/* Header */}
           <div className="mt-5 mx-20 flex justify-between">
             <ul className="w-2/6 mt-4 text-xl font-light justify-self-start flex justify-between">
-              <li className="pb-1 border-b-2 border-transparent hover:border-black hover:duration-700"><button onClick={filterAll}>All</button></li>
-              <li className="pb-1 border-b-2 border-transparent hover:border-black hover:duration-700"><button onClick={filterOuterWear}>Outerwear</button></li>
-              <li className="pb-1 border-b-2 border-transparent hover:border-black hover:duration-700"><button onClick={filterTops}>Tops</button></li>
-              <li className="pb-1 border-b-2 border-transparent hover:border-black hover:duration-700"><button onClick={filterBottoms}>Bottoms</button></li>
+              <li className={`pb-1 border-b-2 border-transparent ${all && `border-black`} hover:border-black hover:duration-700`}><button onClick={filterAll}>All</button></li>
+              <li className={`pb-1 border-b-2 border-transparent ${outerWear && `border-black`} hover:border-black hover:duration-700`}><button onClick={filterOuterWear}>Outerwear</button></li>
+              <li className={`pb-1 border-b-2 border-transparent ${tops && `border-black`} hover:border-black hover:duration-700`}><button onClick={filterTops}>Tops</button></li>
+              <li className={`pb-1 border-b-2 border-transparent ${bottoms && `border-black`} hover:border-black hover:duration-700`}><button onClick={filterBottoms}>Bottoms</button></li>
             </ul>
             <div className="w-3/6 flex justify-center">
               <div className="mx-8 mt-2 bg-mocha-150 text-white py-2 px-4 rounded-lg flex cursor-not-allowed">Sort by <BiSortAlt2 className="text-xl text-white" /> </div>

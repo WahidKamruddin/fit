@@ -28,7 +28,6 @@ import {
   SidebarRail,
 } from "./ui/sidebar"
 import { useUser } from "../auth/auth"
-import { useState } from "react"
 
 
 

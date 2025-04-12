@@ -33,9 +33,9 @@ export function TeamSwitcher (){
               </div>
               <Link href='/dashboard' className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">
-                  Hello
+                  Fit.Ai
                 </span>
-                <span className="truncate text-xs">test</span>
+                <span className="truncate text-xs">Dashboard</span>
               </Link>
             </SidebarMenuButton>
 

@@ -1,4 +1,6 @@
 // context/ClosetContext.tsx
+
+"use client"
 import { createContext, useContext, useEffect, useState } from "react";
 import { onSnapshot, collection, query } from "firebase/firestore";
 import { db } from "../firebaseConfig/clientApp";

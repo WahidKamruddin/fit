@@ -7,7 +7,7 @@ import { collection, doc, onSnapshot, query, updateDoc } from "firebase/firestor
 import { add, eachDayOfInterval, endOfMonth, format, getDay, isEqual, isToday, parse, startOfMonth, startOfToday } from "date-fns";
 import notLoggedIn from "../../components/notLoggedIn";
 import Clothing from "../../classes/clothes";
-import OutfitCard from "../../components/outfits";
+import OutfitCard from "../../components/outfitCard";
 import { TiDelete } from "react-icons/ti";
 import { IoMdAdd } from "react-icons/io";
 import { ArrowLeft, ArrowRight } from "lucide-react";

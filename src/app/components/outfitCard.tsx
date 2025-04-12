@@ -4,7 +4,6 @@ import {AiOutlineStar, AiOutlineDelete} from "react-icons/ai"
 import { useEffect, useState } from "react"
 import { deleteDoc, doc, updateDoc } from "firebase/firestore";
 import { db } from "../firebaseConfig/clientApp";
-import Clothing from "../classes/clothes";
 
 
 const OutfitCard = (props:any) => {
@@ -44,13 +43,12 @@ const OutfitCard = (props:any) => {
       }, [clothes, outerWear]);
 
     return (
-        <div className="relative my-12">
+        <div className="my-12 relative flex justify-center">
             {edit? <button className="absolute top-0 right-0 p-2 bg-red-600 rounded-xl" onClick={deleteOutfit}></button> : null}
             {date? <button className="absolute top-0 right-0 p-2 bg-red-600 rounded-xl" onClick={deleteDate}></button> : null}
-            
-            {oWImg?  <div className=""><img src={oWImg}  className="p-4 min-w-48 h-48"/></div> : null}
-            {topImg? <div className="absolute top-10"><img src={topImg} className="p-4 min-w-48 h-48"/></div> : null}
-            {botImg? <div className="absolute top-20"><img src={botImg} className="p-4 min-w-48 h-48"/></div> : null}
+            {oWImg?  <div className=""><img src={oWImg}  className="pt-4 min-w-48 h-48"/></div> : null}
+            {topImg? <div className="absolute top-10"><img src={topImg} className="pt-4 min-w-48 h-48"/></div> : null}
+            {botImg? <div className="absolute top-20"><img src={botImg} className="pt-4 min-w-48 h-48"/></div> : null}
         </div>
     )
     

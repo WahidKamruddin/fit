@@ -31,6 +31,8 @@ const Card = (props:any) => {
     }
 
     const deleteClothing = async (id:any) => {
+        console.log(userID);
+         console.log(aClothing.id);
         await deleteDoc(doc(db, `users/${userID}/clothes`, aClothing.id));
       };
 

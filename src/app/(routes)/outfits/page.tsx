@@ -1,7 +1,7 @@
 "use client";
 
 import Clothing from "../../classes/clothes";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { HiViewGrid } from "react-icons/hi";
 import { IoMdAdd } from "react-icons/io";
 import { BiSortAlt2 } from "react-icons/bi";
@@ -11,7 +11,9 @@ import { addDoc, collection, onSnapshot, query } from "firebase/firestore";
 import CardList from "../../components/cardList";
 import { useUser } from "../../auth/auth";
 import notLoggedIn from "../../components/notLoggedIn";
-import OutfitCard from "../../components/outfits";
+import OutfitCard from "../../components/outfitCard";
+import { useCloset } from "../../providers/closetContext";
+
 
 export default function Outfit() {
   //Define User
@@ -24,65 +26,18 @@ export default function Outfit() {
   const [bottom, setBottom] = useState<any | null>(null);
 
   //fetch data states
-  const [hasClothes, setHasClothes] = useState(false);
-  const [cards, setCards] = useState([]);
-  const [outfits, setOutfits] = useState<any | null>(null);
+  const { cards, hasClothes, outfits } = useCloset();
 
   //add
   const [add, setAdd] = useState(false);
+
+  //edit
+  const [edit, setEdit] = useState(false);
 
   useEffect(() => {
     if (user != null) {
       setUserID(user.uid);
     }
-
-    //fetches user data
-    const c = query(collection(db, `users/${userID}/clothes`));
-
-    //fetch clothes
-    const cData = onSnapshot(c, (QuerySnapshot) => {
-      let itemsArr: any = [];
-      let clothesArr: any = [];
-
-      QuerySnapshot.forEach((doc) => {
-        itemsArr.push({ ...doc.data(), id: doc.id });
-      });
-
-      for (let i = 0; i < itemsArr.length; i++) {
-        let clothing: Clothing | null = new Clothing(
-          itemsArr[i].Name,
-          itemsArr[i].Color,
-          itemsArr[i].Type,
-          itemsArr[i].Image,
-          itemsArr[i].Style
-        );
-        clothesArr.push({ clothing, id: itemsArr[i].id });
-        clothing = null;
-      }
-
-      setCards(clothesArr);
-
-      if (clothesArr.length >= 1) {
-        setHasClothes(true);
-      }
-    });
-
-    //fetch outfits
-    const o = query(collection(db, `users/${userID}/outfits`));
-
-    const oData = onSnapshot(o, (QuerySnapshot) => {
-      let outfitArr: any = [];
-
-      QuerySnapshot.forEach((doc) => {
-        outfitArr.push({ ...doc.data(), id: doc.id });
-      });
-
-      setOutfits(outfitArr);
-
-      if (outfitArr.length >= 1) {
-        setHasClothes(true);
-      }
-    });
   }, [user, userID]);
 
   //add outfit
@@ -124,6 +79,16 @@ export default function Outfit() {
     setBottom(null);
   };
 
+  const memoizedOutfits = useMemo(() => {
+    return outfits?.map((something: any) => (
+      <div key={something.id}>
+        <div className="px-16">
+          <OutfitCard userID={userID} outfit={something} clothes={cards} canEdit={edit} />
+        </div>
+      </div>
+    ));
+  }, [outfits, cards, edit, add]);
+
   return (
     <div>
       {user ? (
@@ -143,29 +108,19 @@ export default function Outfit() {
                 <div className="mx-8 p-2 mt-2 bg-mocha-150 rounded-3xl cursor-not-allowed">
                   <HiViewGrid className="text-2xl text-white" />
                 </div>
-                <button
-                  onClick={() => {
-                    setAdd(true);
-                  }}
-                  className="mx-8 p-2 mt-2 bg-mocha-150 rounded-3xl"
-                >
+                <button onClick={() => {setAdd(true);}} className="mx-8 p-2 mt-2 bg-mocha-150 rounded-3xl">
+                  <IoMdAdd className="text-2xl text-white" />
+                </button>
+                <button onClick={() => {setEdit(!edit);}} className="mx-8 p-2 mt-2 bg-mocha-150 rounded-3xl">
                   <IoMdAdd className="text-2xl text-white" />
                 </button>
               </div>
             </div>
 
             {/* Outfit cards */}
-            <div className="absolute mr-8 h-4/6 flex justify-center">
+            <div className="absolute mt-10 mr-8 h-4/6 flex justify-center">
               <div className="w-7/8 h-full flex flex-wrap justify-center overflow-y-scroll ">
-              {outfits
-                ? outfits.map((something: any) => (
-                    <div key={something.id}>
-                      <div className="px-16">
-                        <OutfitCard userID={userID} outfit={something} clothes={cards} canEdit={true}/>
-                      </div>
-                    </div>
-                  ))
-                : null}
+              {memoizedOutfits}
               </div>
             </div>
             

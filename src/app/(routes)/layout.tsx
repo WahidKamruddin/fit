@@ -21,7 +21,7 @@ export default function loggedInLayout({
     <SidebarProvider >
       <AppSidebar />
       <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 bg-off-white-100">
+        <header className="absolute flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 bg-off-white-100">
           <div className="flex items-center gap-2 px-4">
             <SidebarTrigger className="z-30 -ml-1 cursor-pointer" />
             <Separator
@@ -47,7 +47,6 @@ export default function loggedInLayout({
         </header>
         <div className="h-full">
           {children}
-          <Footer/>
           </div>
       </SidebarInset>
     </SidebarProvider>

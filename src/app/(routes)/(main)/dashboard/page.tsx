@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { RadialChart } from "../../components/radialChart";
+import { RadialChart } from "@/src/app/components/radialChart";
 
 export default function Page() {
   return (

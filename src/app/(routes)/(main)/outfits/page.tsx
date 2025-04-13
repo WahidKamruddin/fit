@@ -1,18 +1,19 @@
 "use client";
 
-import Clothing from "../../classes/clothes";
+import Clothing from "@/src/app/classes/clothes";
 import { useEffect, useMemo, useState } from "react";
 import { HiViewGrid } from "react-icons/hi";
 import { IoMdAdd } from "react-icons/io";
 import { BiSortAlt2 } from "react-icons/bi";
 import { TiDelete } from "react-icons/ti";
-import { db, storage } from "../../firebaseConfig/clientApp";
+import { db, storage } from "@/src/app/firebaseConfig/clientApp";
 import { addDoc, collection, onSnapshot, query } from "firebase/firestore";
-import CardList from "../../components/cardList";
-import { useUser } from "../../auth/auth";
-import notLoggedIn from "../../components/notLoggedIn";
-import OutfitCard from "../../components/outfitCard";
-import { useCloset } from "../../providers/closetContext";
+import CardList from "@/src/app/components/cardList";
+import { useUser } from "@/src/app/auth/auth";
+import notLoggedIn from "@/src/app/components/notLoggedIn";
+import OutfitCard from "@/src/app/components/outfitCard";
+import { useCloset } from "@/src/app/providers/closetContext";
+import { Pencil } from "lucide-react";
 
 
 export default function Outfit() {
@@ -112,7 +113,7 @@ export default function Outfit() {
                   <IoMdAdd className="text-2xl text-white" />
                 </button>
                 <button onClick={() => {setEdit(!edit);}} className="mx-8 p-2 mt-2 bg-mocha-150 rounded-3xl">
-                  <IoMdAdd className="text-2xl text-white" />
+                  <Pencil className="text-white"/>
                 </button>
               </div>
             </div>

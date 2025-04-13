@@ -4,7 +4,7 @@ import { FileUploader } from "react-drag-drop-files";
 import { GoogleAIFileManager } from "@google/generative-ai/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import path from "path";
-import Gemeni from "../../api/gemeniapi";
+import Gemeni from "@/src/app/api/gemeniapi";
 
 
 const fileTypes = ["JPG", "PNG", "GIF"];

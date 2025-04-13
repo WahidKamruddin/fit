@@ -71,16 +71,12 @@ const data = {
       items: [
         {
           title: "Blog",
-          url: "#",
-        },
-        {
-          title: "Articles",
-          url: "#",
+          url: "/blog",
         },
         {
           title: "Fashion",
-          url: "#",
-        },
+          url: "/fashion",
+        }
       ],
     },
     {

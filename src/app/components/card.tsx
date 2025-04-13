@@ -37,7 +37,7 @@ const Card = (props:any) => {
       };
 
     return(
-        <div className="relative bg-black rounded-xl group">
+        <div className="relative w-48 h-48 rounded-xl group">
             <div className="relative bg-gray-100 border-2 rounded-xl select-none">
                 {/* delete */}
                 {edit? 

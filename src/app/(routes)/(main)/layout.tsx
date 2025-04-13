@@ -1,14 +1,13 @@
-import { AppSidebar } from "../components/app-sidebar";
-import Footer from "../components/footer";
-import { Separator } from "../components/ui/separator";
+import { AppSidebar } from "@/src/app/components/app-sidebar";
+import { Separator } from "@/src/app/components/ui/separator";
 
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
-} from "../components/ui/sidebar";
+} from "@/src/app/components/ui/sidebar";
 
-import { ClosetProvider } from "../providers/closetContext";
+import { ClosetProvider } from "@/src/app/providers/closetContext";
 
 
 export default function loggedInLayout({

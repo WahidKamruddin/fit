@@ -1,13 +1,13 @@
 'use client'
 
 import { useEffect, useState } from "react";
-import { useUser } from "../../auth/auth";
-import { db } from "../../firebaseConfig/clientApp";
+import { useUser } from "@/src/app/auth/auth";
+import { db } from "@/src/app/firebaseConfig/clientApp";
 import { collection, doc, onSnapshot, query, updateDoc } from "firebase/firestore";
 import { add, eachDayOfInterval, endOfMonth, format, getDay, isEqual, isToday, parse, startOfMonth, startOfToday } from "date-fns";
-import notLoggedIn from "../../components/notLoggedIn";
-import Clothing from "../../classes/clothes";
-import OutfitCard from "../../components/outfitCard";
+import notLoggedIn from "@/src/app/components/notLoggedIn";
+import Clothing from "@/src/app/classes/clothes";
+import OutfitCard from "@/src/app/components/outfitCard";
 import { TiDelete } from "react-icons/ti";
 import { IoMdAdd } from "react-icons/io";
 import { ArrowLeft, ArrowRight } from "lucide-react";
@@ -103,8 +103,6 @@ export default function Closet() {
 
   const renderOutfit = () => {
     const formattedSelectedDay = format(selectedDay, 'MMddyy');
-
-
     const matchingOutfit = outfitArr.find((outfit: Outfit) => outfit.Date === formattedSelectedDay);
 
     if (matchingOutfit) {
@@ -163,7 +161,7 @@ export default function Closet() {
                 <div className="grid grid-cols-7 mt-2 text-md text-black">
                   {days.map((day: any, dayIdx: any) => (
                     <div
-                      className={`${dayIdx === 0 && colStartClasses[getDay(day)]} py-2 flex justify-center items-center`}
+                      className={`${dayIdx === 0 && colStartClasses[getDay(day)]} py-2 flex justify-center items-center `}
                       key={day.toString()}
                     >
                       <button

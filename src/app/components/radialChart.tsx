@@ -95,7 +95,7 @@ export function RadialChart() {
       </CardContent>
       <CardFooter className="flex-col gap-2 text-sm">
         <div className="flex items-center gap-2 font-medium leading-none">
-          120 clothes added <TrendingUp className="h-4 w-4" />
+          100 clothes added <TrendingUp className="h-4 w-4" />
         </div>
         <div className="leading-none text-muted-foreground">
           Showing total clothes left in Fit Free

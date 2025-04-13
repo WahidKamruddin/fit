@@ -1,6 +1,6 @@
 'use client'
 
-import { googleSignIn, logOut, useUser } from "../../auth/auth"
+import { googleSignIn, useUser } from "../../auth/auth";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
@@ -9,7 +9,7 @@ export default function login() {
 
     //redirects if the user is logged in already
     if (user != null) {
-        redirect('/');
+        redirect('/dashboard');
     }
 
     return (

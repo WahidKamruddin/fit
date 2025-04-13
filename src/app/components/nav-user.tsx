@@ -29,6 +29,8 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "./ui/sidebar"
+import { logOut } from "../auth/auth"
+import { redirect } from "next/navigation"
 
 export function NavUser({
   user,
@@ -40,6 +42,7 @@ export function NavUser({
 }) {
   const { isMobile } = useSidebar()
 
+   
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -99,7 +102,7 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={()=>logOut()}>
               <LogOut />
               Log out
             </DropdownMenuItem>

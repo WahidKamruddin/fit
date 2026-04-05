@@ -80,6 +80,10 @@ const config: Config = {
   		fontFamily: {
   			nunito: [
   				'Nunito'
+  			],
+  			cormorant: [
+  				'Cormorant Garamond',
+  				'serif'
   			]
   		},
   		borderRadius: {

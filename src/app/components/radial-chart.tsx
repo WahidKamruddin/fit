@@ -42,7 +42,7 @@ export function RadialChart() {
       <CardContent className="flex-1 pb-0">
         <ChartContainer
           config={chartConfig}
-          className="mx-auto aspect-square max-h-[250px]"
+          className="mx-auto aspect-square max-h-64"
         >
           <RadialBarChart
             data={chartData}
@@ -93,14 +93,6 @@ export function RadialChart() {
           </RadialBarChart>
         </ChartContainer>
       </CardContent>
-      <CardFooter className="flex-col gap-2 text-sm">
-        <div className="flex items-center gap-2 font-medium leading-none">
-          100 clothes added <TrendingUp className="h-4 w-4" />
-        </div>
-        <div className="leading-none text-muted-foreground">
-          Showing total clothes left in Fit Free
-        </div>
-      </CardFooter>
     </Card>
   )
 }

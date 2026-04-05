@@ -1,79 +1,90 @@
-// context/ClosetContext.tsx
-
 "use client"
+
 import { createContext, useContext, useEffect, useState } from "react";
 import { onSnapshot, collection, query } from "firebase/firestore";
+import { User } from "firebase/auth";
 import { db } from "../firebaseConfig/clientApp";
-import { useUser } from "../auth/auth"; // or your auth
+import { useUser } from "../auth/auth";
 import Clothing from "../classes/clothes";
 
-export const ClosetContext = createContext<any>(null);
+interface ClothingCard {
+  clothing: Clothing;
+  id: string;
+}
+
+interface OutfitDoc {
+  id: string;
+  OuterWear: string;
+  Top: string;
+  Bottom: string;
+  Date: string | null;
+}
+
+interface ClosetContextValue {
+  cards: ClothingCard[];
+  outfits: OutfitDoc[];
+  hasClothes: boolean;
+}
+
+export const ClosetContext = createContext<ClosetContextValue>({
+  cards: [],
+  outfits: [],
+  hasClothes: false,
+});
 
 export function ClosetProvider({ children }: { children: React.ReactNode }) {
-    const user = useUser();    const [userID, setUserID] = useState(null);
-    const [cards, setCards] = useState([]);
-    const [outfits, setOutfits] = useState([]);
-    const [hasClothes, setHasClothes] = useState(false);
+  const user = useUser();
+  const [cards, setCards] = useState<ClothingCard[]>([]);
+  const [outfits, setOutfits] = useState<OutfitDoc[]>([]);
+  const [hasClothes, setHasClothes] = useState(false);
 
-    useEffect(() => {
-        if (user != null) {
-        setUserID(user.uid);
-        }
+  useEffect(() => {
+    if (!user) return;
 
-        //fetches user data
-        const c = query(collection(db, `users/${userID}/clothes`));
+    const uid = user.uid;
 
-        //fetch clothes
-        const cData = onSnapshot(c, (QuerySnapshot) => {
-        let itemsArr: any = [];
-        let clothesArr: any = [];
+    const clothesQuery = query(collection(db, `users/${uid}/clothes`));
+    const unsubClothes = onSnapshot(clothesQuery, (snapshot) => {
+      const clothesArr: ClothingCard[] = [];
 
-        QuerySnapshot.forEach((doc) => {
-            itemsArr.push({ ...doc.data(), id: doc.id });
-        });
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        const clothing = new Clothing(
+          data.Name,
+          data.Color,
+          data.Type,
+          data.Image,
+          data.Style
+        );
+        clothesArr.push({ clothing, id: doc.id });
+      });
 
-        for (let i = 0; i < itemsArr.length; i++) {
-            let clothing: Clothing | null = new Clothing(
-            itemsArr[i].Name,
-            itemsArr[i].Color,
-            itemsArr[i].Type,
-            itemsArr[i].Image,
-            itemsArr[i].Style
-            );
-            clothesArr.push({ clothing, id: itemsArr[i].id });
-            clothing = null;
-        }
+      setCards(clothesArr);
+      setHasClothes(clothesArr.length > 0);
+    });
 
-        setCards(clothesArr);
+    const outfitsQuery = query(collection(db, `users/${uid}/outfits`));
+    const unsubOutfits = onSnapshot(outfitsQuery, (snapshot) => {
+      const outfitArr: OutfitDoc[] = [];
 
-        if (clothesArr.length >= 1) {
-            setHasClothes(true);
-        }
-        });
+      snapshot.forEach((doc) => {
+        outfitArr.push({ ...doc.data(), id: doc.id } as OutfitDoc);
+      });
 
-        //fetch outfits
-        const o = query(collection(db, `users/${userID}/outfits`));
+      setOutfits(outfitArr);
+    });
 
-        const oData = onSnapshot(o, (QuerySnapshot) => {
-        let outfitArr: any = [];
+    return () => {
+      unsubClothes();
+      unsubOutfits();
+    };
+  }, [user]);
 
-        QuerySnapshot.forEach((doc) => {
-            outfitArr.push({ ...doc.data(), id: doc.id });
-        });
-
-        setOutfits(outfitArr);
-
-        if (outfitArr.length >= 1) {
-            setHasClothes(true);
-        }
-        });
-    }, [user, userID]);
-
-    return (
-        <ClosetContext.Provider value={{ cards, outfits, hasClothes }}>
-        {children}
-        </ClosetContext.Provider>
-    );
+  return (
+    <ClosetContext.Provider value={{ cards, outfits, hasClothes }}>
+      {children}
+    </ClosetContext.Provider>
+  );
 }
 
 export const useCloset = () => useContext(ClosetContext);

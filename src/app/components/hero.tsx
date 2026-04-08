@@ -2,7 +2,7 @@ export default function Hero() {
     return (
         <section
             id="hero"
-            className="relative h-screen bg-mocha-500 flex flex-col justify-center overflow-hidden"
+            className="relative h-screen bg-mocha-500 flex flex-col justify-center overflow-hidden snap-start"
         >
             {/* Directional gradient for depth — darker top-left, slightly warmer bottom-right */}
             <div className="absolute inset-0 bg-gradient-to-br from-mocha-500 via-mocha-500 to-mocha-400" />

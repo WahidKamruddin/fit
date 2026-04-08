@@ -1,8 +1,10 @@
 "use client"
+import React from "react";
 import { useTypewriter } from "react-simple-typewriter";
 import Image from "next/image";
+import { useInView } from "../hooks/use-in-view";
 
-export default function aiOutfitFeature() {
+export default function AiOutfitFeature() {
     const [style] = useTypewriter({
         words: ["Minimal", "Casual", "Goth", "Formal", "Soft", "Old Money"],
         loop: true,
@@ -17,12 +19,14 @@ export default function aiOutfitFeature() {
         deleteSpeed: 90,
     });
 
+    const { ref: sectionRef, inView } = useInView()
+
     return (
-        <section className="min-h-screen bg-mocha-100 flex items-center py-28">
+        <section ref={sectionRef as React.RefObject<HTMLElement>} className="min-h-screen bg-mocha-100 flex items-center py-28 snap-start">
             <div className="max-w-7xl mx-auto px-8 sm:px-16 w-full">
 
                 {/* Section label */}
-                <div className="flex items-center gap-4 mb-20">
+                <div className={`flex items-center gap-4 mb-20 reveal ${inView ? 'is-visible' : ''}`}>
                     <span className="text-[10px] text-mocha-400 tracking-[0.5em] uppercase">02</span>
                     <div className="w-10 h-px bg-mocha-300" />
                     <span className="text-[10px] text-mocha-400 tracking-[0.5em] uppercase">AI Outfits</span>
@@ -31,7 +35,7 @@ export default function aiOutfitFeature() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
 
                     {/* Text side */}
-                    <div>
+                    <div className={`reveal-left ${inView ? 'is-visible' : ''}`} style={{ transitionDelay: '0.1s' }}>
                         <h2 className="font-cormorant text-5xl sm:text-6xl font-light text-mocha-500 leading-[1.05] mb-14">
                             Dress for<br />
                             <span className="italic text-mocha-400">every</span><br />
@@ -69,7 +73,7 @@ export default function aiOutfitFeature() {
                     </div>
 
                     {/* Outfit showcase */}
-                    <div className="bg-mocha-500 rounded-3xl p-8 sm:p-10">
+                    <div className={`bg-mocha-500 rounded-3xl p-8 sm:p-10 reveal-right ${inView ? 'is-visible' : ''}`} style={{ transitionDelay: '0.25s' }}>
                         <div className="bg-mocha-100/15 rounded-2xl p-5 flex gap-4 justify-center items-stretch">
                             <Image
                                 alt="outfit 1"

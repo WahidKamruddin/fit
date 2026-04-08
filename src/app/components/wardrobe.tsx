@@ -1,13 +1,17 @@
 "use client"
+import React from "react";
 import Image from "next/image";
+import { useInView } from "../hooks/use-in-view";
 
 export default function Wardrobe() {
+    const { ref: sectionRef, inView } = useInView()
+
     return (
-        <section id="wardrobe" className="min-h-screen bg-off-white-100 flex items-center py-28">
+        <section ref={sectionRef as React.RefObject<HTMLElement>} id="wardrobe" className="min-h-screen bg-off-white-100 flex items-center py-28 snap-start">
             <div className="max-w-7xl mx-auto px-8 sm:px-16 w-full">
 
                 {/* Section label */}
-                <div className="flex items-center gap-4 mb-20">
+                <div className={`flex items-center gap-4 mb-20 reveal ${inView ? 'is-visible' : ''}`}>
                     <span className="text-[10px] text-mocha-400 tracking-[0.5em] uppercase">01</span>
                     <div className="w-10 h-px bg-mocha-300" />
                     <span className="text-[10px] text-mocha-400 tracking-[0.5em] uppercase">Digital Wardrobe</span>
@@ -16,7 +20,7 @@ export default function Wardrobe() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
 
                     {/* Image panel */}
-                    <div className="relative">
+                    <div className={`relative reveal-left ${inView ? 'is-visible' : ''}`} style={{ transitionDelay: '0.1s' }}>
                         <div className="bg-white rounded-3xl shadow-xl shadow-mocha-300/20 ">
                             <Image
                                 alt="virtual closet"
@@ -32,7 +36,7 @@ export default function Wardrobe() {
                     </div>
 
                     {/* Text panel */}
-                    <div>
+                    <div className={`reveal-right ${inView ? 'is-visible' : ''}`} style={{ transitionDelay: '0.25s' }}>
                         <h2 className="font-cormorant text-5xl sm:text-6xl font-light text-mocha-500 leading-[1.05] mb-12">
                             Your entire<br />
                             wardrobe,<br />

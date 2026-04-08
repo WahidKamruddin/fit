@@ -1,14 +1,19 @@
+"use client"
+import React from "react";
 import { AiFillLinkedin, AiFillGithub } from "react-icons/ai";
 import { BsBell } from "react-icons/bs";
 import { TbLetterW, TbLetterK } from "react-icons/tb";
+import { useInView } from "../hooks/use-in-view";
 
 export default function Contact() {
+    const { ref: sectionRef, inView } = useInView()
+
     return (
-        <section id="notif" className="min-h-screen bg-mocha-500 flex items-center py-28">
+        <section ref={sectionRef as React.RefObject<HTMLElement>} id="notif" className="min-h-screen bg-mocha-500 flex items-center py-28 snap-start">
             <div className="max-w-7xl mx-auto px-8 sm:px-16 w-full">
 
                 {/* Main CTA block */}
-                <div className="max-w-2xl">
+                <div className={`max-w-2xl reveal ${inView ? 'is-visible' : ''}`} style={{ transitionDelay: '0.1s' }}>
                     <p className="text-mocha-300 text-[10px] tracking-[0.5em] uppercase mb-10">
                         Stay in the loop
                     </p>
@@ -34,7 +39,7 @@ export default function Contact() {
                 </div>
 
                 {/* Divider + social links */}
-                <div className="mt-28 pt-10 border-t border-mocha-400/50">
+                <div className={`mt-28 pt-10 border-t border-mocha-400/50 reveal ${inView ? 'is-visible' : ''}`} style={{ transitionDelay: '0.35s' }}>
                     <p className="text-mocha-300/60 text-[10px] tracking-[0.45em] uppercase mb-8">
                         Find me here
                     </p>

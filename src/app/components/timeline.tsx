@@ -1,7 +1,10 @@
+"use client"
+import React from "react";
 import { BiCloset } from "react-icons/bi";
 import { PiTShirt } from "react-icons/pi";
 import { AiOutlineShopping } from "react-icons/ai";
 import { BsBell } from "react-icons/bs";
+import { useInView } from "../hooks/use-in-view";
 
 const milestones = [
     {
@@ -31,12 +34,14 @@ const milestones = [
 ];
 
 export default function Timeline() {
+    const { ref: sectionRef, inView } = useInView()
+
     return (
-        <section id="timeline" className="min-h-screen bg-mocha-100 flex items-center py-28">
+        <section ref={sectionRef as React.RefObject<HTMLElement>} id="timeline" className="min-h-screen bg-mocha-100 flex items-center py-28 snap-start">
             <div className="max-w-7xl mx-auto px-8 sm:px-16 w-full">
 
                 {/* Section label */}
-                <div className="flex items-center gap-4 mb-20">
+                <div className={`flex items-center gap-4 mb-20 reveal ${inView ? 'is-visible' : ''}`}>
                     <span className="text-[10px] text-mocha-400 tracking-[0.5em] uppercase">04</span>
                     <div className="w-10 h-px bg-mocha-300" />
                     <span className="text-[10px] text-mocha-400 tracking-[0.5em] uppercase">Roadmap</span>
@@ -45,7 +50,7 @@ export default function Timeline() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-start">
 
                     {/* Heading */}
-                    <div>
+                    <div className={`reveal-left ${inView ? 'is-visible' : ''}`} style={{ transitionDelay: '0.1s' }}>
                         <h2 className="font-cormorant text-5xl sm:text-6xl font-light text-mocha-500 leading-[1.05]">
                             {"What's"}<br />
                             <span className="italic text-mocha-400">coming next.</span>
@@ -62,7 +67,7 @@ export default function Timeline() {
 
                         <div className="space-y-10">
                             {milestones.map((m, i) => (
-                                <div key={i} className="flex gap-8 items-start">
+                                <div key={i} className={`flex gap-8 items-start reveal ${inView ? 'is-visible' : ''}`} style={{ transitionDelay: `${0.2 + i * 0.1}s` }}>
                                     {/* Icon dot — 48 px wide, centered on the line at left:6 (24px) */}
                                     <div
                                         className={`relative z-10 w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 border-2 transition-all duration-300 ${

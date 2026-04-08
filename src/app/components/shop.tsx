@@ -1,4 +1,7 @@
+"use client"
+import React from "react";
 import Image from "next/image";
+import { useInView } from "../hooks/use-in-view";
 
 const items = [
     { src: "img/buyJacket.svg",     label: "Jacket",      category: "Outerwear" },
@@ -7,19 +10,21 @@ const items = [
 ];
 
 export default function Shop() {
+    const { ref: sectionRef, inView } = useInView()
+
     return (
-        <section className="min-h-screen bg-off-white-100 flex items-center py-28">
+        <section ref={sectionRef as React.RefObject<HTMLElement>} className="min-h-screen bg-off-white-100 flex items-center py-28 snap-start">
             <div className="max-w-7xl mx-auto px-8 sm:px-16 w-full">
 
                 {/* Section label */}
-                <div className="flex items-center gap-4 mb-14">
+                <div className={`flex items-center gap-4 mb-14 reveal ${inView ? 'is-visible' : ''}`}>
                     <span className="text-[10px] text-mocha-400 tracking-[0.5em] uppercase">03</span>
                     <div className="w-10 h-px bg-mocha-300" />
                     <span className="text-[10px] text-mocha-400 tracking-[0.5em] uppercase">Shop</span>
                 </div>
 
                 {/* Header row */}
-                <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-16 gap-6">
+                <div className={`flex flex-col sm:flex-row sm:items-end justify-between mb-16 gap-6 reveal ${inView ? 'is-visible' : ''}`} style={{ transitionDelay: '0.1s' }}>
                     <h2 className="font-cormorant text-5xl sm:text-6xl font-light text-mocha-500 leading-[1.05]">
                         Shop<br />
                         <span className="italic text-mocha-400">Essentials.</span>
@@ -34,7 +39,8 @@ export default function Shop() {
                     {items.map((item, i) => (
                         <div
                             key={i}
-                            className="group bg-mocha-100 rounded-2xl overflow-hidden hover:shadow-md hover:-translate-y-1 transition-all duration-500 cursor-pointer"
+                            className={`group bg-mocha-100 rounded-2xl overflow-hidden hover:shadow-md hover:-translate-y-1 transition-all duration-500 cursor-pointer reveal ${inView ? 'is-visible' : ''}`}
+                            style={{ transitionDelay: `${0.2 + i * 0.12}s` }}
                         >
                             <div className="px-10 pt-10 pb-6 flex justify-center">
                                 <Image

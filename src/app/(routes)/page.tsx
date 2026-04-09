@@ -6,7 +6,6 @@ import Wardrobe from "@/src/app/components/wardrobe";
 import Shop from "@/src/app/components/shop";
 import Navbar from "@/src/app/components/navbar";
 import Footer from "@/src/app/components/footer";
-
 export default function Home() {
   return (
     <div>

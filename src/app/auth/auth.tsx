@@ -1,26 +1,39 @@
-import { onAuthStateChanged, signInWithPopup, signOut, User } from "firebase/auth";
-import { GoogleAuthProvider } from "firebase/auth";
+import { User } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
-import { auth } from "../firebaseConfig/clientApp";
+import { supabase } from "../supabaseConfig/client";
 
-//Sign in with Google
+// Sign in with Google (redirects to Google, then back to /dashboard)
 export async function googleSignIn() {
-        const provider = new GoogleAuthProvider();
-        return signInWithPopup(auth, provider);
+  await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: `${window.location.origin}/auth/callback`,
+    },
+  });
 }
 
-//Log out
+// Log out
 export async function logOut() {
-        signOut(auth);
+  await supabase.auth.signOut();
 }
 
-//user
+// User hook — returns current Supabase User or null
 export function useUser() {
-    const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(null);
 
-    useEffect(() => {
-        return onAuthStateChanged(auth, (currentUser) => { setUser(currentUser); });
-    }, []);
+  useEffect(() => {
+    // Hydrate from existing session immediately
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
 
-    return user;
+    // Listen for auth state changes (sign in, sign out, token refresh)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  return user;
 }

@@ -39,7 +39,7 @@ export default function Shop() {
                     {items.map((item, i) => (
                         <div
                             key={i}
-                            className={`group bg-mocha-100 rounded-2xl overflow-hidden hover:shadow-md hover:-translate-y-1 transition-all duration-500 cursor-pointer reveal ${inView ? 'is-visible' : ''}`}
+                            className={`group rounded-2xl overflow-hidden border border-mocha-200 hover:-translate-y-1 transition-all duration-500 cursor-pointer reveal ${inView ? 'is-visible' : ''}`}
                             style={{ transitionDelay: `${0.2 + i * 0.12}s` }}
                         >
                             <div className="px-10 pt-10 pb-6 flex justify-center">

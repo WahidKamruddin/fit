@@ -6,8 +6,7 @@ import { HiViewGrid } from "react-icons/hi";
 import { IoMdAdd } from "react-icons/io";
 import { BiSortAlt2 } from "react-icons/bi";
 import { TiDelete } from "react-icons/ti";
-import { db } from "@/src/app/firebaseConfig/clientApp";
-import { addDoc, collection } from "firebase/firestore";
+import { supabase } from "@/src/app/supabaseConfig/client";
 import CardList from "@/src/app/components/card-list";
 import { useUser } from "@/src/app/auth/auth";
 import NotLoggedIn from "@/src/app/components/not-logged-in";
@@ -37,11 +36,12 @@ export default function Outfit() {
 
   const addOutfit = async () => {
     if (!user || !outerWear || !top || !bottom) return;
-    await addDoc(collection(db, `users/${user.uid}/outfits`), {
-      OuterWear: outerWear[1],
-      Top: top[1],
-      Bottom: bottom[1],
-      Date: null,
+    await supabase.from('outfits').insert({
+      user_id: user.id,
+      outer_wear: outerWear[1],
+      top: top[1],
+      bottom: bottom[1],
+      date: null,
     });
   };
 
@@ -62,9 +62,7 @@ export default function Outfit() {
   const memoizedOutfits = useMemo(() => {
     return outfits?.map((something) => (
       <div key={something.id}>
-        <div className="px-16">
-          <OutfitCard userID={user?.uid ?? null} outfit={something} clothes={cards} canEdit={edit} />
-        </div>
+        <OutfitCard userID={user?.id ?? null} outfit={something} clothes={cards} canEdit={edit} />
       </div>
     ));
   }, [outfits, cards, edit]);
@@ -72,93 +70,74 @@ export default function Outfit() {
   if (!user) return <NotLoggedIn />;
 
   return (
-    <div className="h-screen pt-16 bg-off-white-100 text-black relative">
-      <div className="mx-20">
-        <h1 className="text-4xl">
-          {user.displayName?.split(" ")[0]}'s Outfits
+    <div className="min-h-screen pt-16 bg-off-white-100 text-black">
+      <div className="px-4 sm:px-8 lg:px-20">
+        <h1 className="text-3xl sm:text-4xl">
+          {(user.user_metadata?.full_name ?? user.user_metadata?.name)?.split(" ")[0]}{"'s"} Outfits
         </h1>
 
         {/* Header */}
-        <div className="mt-5 w-full flex justify-between">
-          <ul className="w-2/6 mt-4 text-xl font-light justify-self-start flex justify-between"></ul>
-          <div className="w-3/6 flex justify-center">
-            <div className="mx-8 mt-2 bg-mocha-150 text-white py-2 px-4 rounded-lg flex cursor-not-allowed">
-              Sort by <BiSortAlt2 className="text-xl text-white" />{" "}
+        <div className="mt-5 flex flex-wrap gap-4 justify-end items-center">
+          <div className="flex items-center gap-2 sm:gap-4">
+            <div className="mt-2 bg-mocha-150 text-white py-2 px-3 rounded-lg flex items-center gap-1 cursor-not-allowed text-sm">
+              Sort <BiSortAlt2 className="text-lg text-white" />
             </div>
-            <div className="mx-8 p-2 mt-2 bg-mocha-150 rounded-3xl cursor-not-allowed">
-              <HiViewGrid className="text-2xl text-white" />
+            <div className="p-2 mt-2 bg-mocha-150 rounded-3xl cursor-not-allowed">
+              <HiViewGrid className="text-xl text-white" />
             </div>
-            <button onClick={() => { setAdd(true); }} className="mx-8 p-2 mt-2 bg-mocha-150 rounded-3xl">
-              <IoMdAdd className="text-2xl text-white" />
+            <button onClick={() => setAdd(true)} className="p-2 mt-2 bg-mocha-150 rounded-3xl">
+              <IoMdAdd className="text-xl text-white" />
             </button>
-            <button onClick={() => { setEdit(!edit); }} className="mx-8 p-2 mt-2 bg-mocha-150 rounded-3xl">
-              <Pencil className="text-white"/>
+            <button onClick={() => setEdit(!edit)} className="p-2 mt-2 bg-mocha-150 rounded-3xl">
+              <Pencil size={18} className="text-white"/>
             </button>
           </div>
         </div>
 
         {/* Outfit cards */}
-        <div className="absolute mt-10 mr-8 h-4/6 flex justify-center">
-          <div className="w-7/8 h-full flex flex-wrap justify-center overflow-y-scroll ">
-            {memoizedOutfits}
-          </div>
+        <div className="mt-10 pb-12 flex flex-wrap justify-center gap-4">
+          {memoizedOutfits}
         </div>
       </div>
 
       {/* Add outfit modal */}
       {add && (
-        <div className="absolute w-full h-full top-0 bg-black z-50 flex justify-center items-center bg-opacity-20">
-          <div className="relative w-10/12 h-auto p-3 bg-white opacity-100 rounded-xl flex flex-col justify-center">
-            <h1 className="text-center">Add an Outfit</h1>
-            <div className="m-12 flex justify-between">
-              <div className="w-64 h-64 bg-transparent border-2 border-gray-300 border-dashed flex justify-center items-center">
-                {outerWear ? (
-                  <img
-                    alt="outerwear"
-                    src={outerWear[0].getImageUrl()}
-                    className="p-4 min-w-48 h-48 group-hover:blur-sm z-0"
-                  />
-                ) : (
-                  <p>Outerwear</p>
-                )}
-              </div>
-              <div className="w-64 h-64 bg-transparent border-2 border-gray-300 border-dashed flex justify-center items-center">
-                {top ? (
-                  <img
-                    alt="top"
-                    src={top[0].getImageUrl()}
-                    className="p-4 min-w-48 h-48 group-hover:blur-sm z-0"
-                  />
-                ) : (
-                  <p>Top</p>
-                )}
-              </div>
-              <div className="w-64 h-64 bg-transparent border-2 border-gray-300 border-dashed flex justify-center items-center">
-                {bottom ? (
-                  <img
-                    alt="bottom"
-                    src={bottom[0].getImageUrl()}
-                    className="p-4 min-w-48 h-48 group-hover:blur-sm z-0"
-                  />
-                ) : (
-                  <p>Bottom</p>
-                )}
-              </div>
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex justify-center items-center p-4">
+          <div className="relative w-full max-w-2xl bg-off-white-100 rounded-3xl p-6 sm:p-8 shadow-2xl flex flex-col gap-6">
+
+            {/* Close */}
+            <button onClick={exit} className="absolute top-5 right-5 w-8 h-8 flex items-center justify-center rounded-full border border-mocha-200 text-mocha-400 hover:border-mocha-400 hover:text-mocha-500 transition-all duration-200" aria-label="Close">
+              <span className="text-xs leading-none">✕</span>
+            </button>
+
+            <div>
+              <p className="text-[10px] tracking-[0.5em] uppercase text-mocha-400 mb-2">New Look</p>
+              <h2 className="font-cormorant text-4xl font-light text-mocha-500">
+                Build an <span className="italic text-mocha-400">outfit.</span>
+              </h2>
             </div>
 
-            <div className="w-full flex justify-center items-center">
-              <button
-                onClick={createOutfit}
-                disabled={!outerWear || !top || !bottom}
-                className="bg-blue-100 disabled:cursor-not-allowed cursor-pointer"
-              >
-                Make Outfit
-              </button>
+            {/* Preview slots */}
+            <div className="grid grid-cols-3 gap-3 sm:gap-6">
+              {[
+                { label: 'Outerwear', item: outerWear },
+                { label: 'Top',       item: top       },
+                { label: 'Bottom',    item: bottom    },
+              ].map(({ label, item }) => (
+                <div key={label} className="border border-dashed border-mocha-300 rounded-2xl aspect-square flex flex-col justify-center items-center overflow-hidden">
+                  {item ? (
+                    <img alt={label} src={item[0].getImageUrl()} className="w-full h-full object-contain p-3" />
+                  ) : (
+                    <p className="text-[10px] tracking-[0.3em] uppercase text-mocha-300">{label}</p>
+                  )}
+                </div>
+              ))}
             </div>
 
-            <div className="w-full h-48">
+            {/* Card picker */}
+            <div className="h-40 sm:h-52 overflow-y-auto rounded-2xl border border-mocha-200">
               <CardList
-                userID={user.uid}
+                userID={user.id}
                 cards={cards}
                 hasClothes={hasClothes}
                 edit={false}
@@ -167,8 +146,12 @@ export default function Outfit() {
               />
             </div>
 
-            <button onClick={exit} className="absolute top-0 right-0">
-              <TiDelete className="text-3xl text-rose-600" />
+            <button
+              onClick={createOutfit}
+              disabled={!outerWear || !top || !bottom}
+              className="w-full py-3.5 bg-mocha-500 text-mocha-100 text-[11px] tracking-[0.3em] uppercase rounded-full hover:bg-mocha-400 transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Save Outfit
             </button>
           </div>
         </div>

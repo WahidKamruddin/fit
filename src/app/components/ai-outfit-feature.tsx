@@ -73,26 +73,29 @@ export default function AiOutfitFeature() {
                     </div>
 
                     {/* Outfit showcase */}
-                    <div className={`bg-mocha-500 rounded-3xl p-8 sm:p-10 reveal-right ${inView ? 'is-visible' : ''}`} style={{ transitionDelay: '0.25s' }}>
-                        <div className="bg-mocha-100/15 rounded-2xl p-5 flex gap-4 justify-center items-stretch">
+                    <div className={`relative reveal-right ${inView ? 'is-visible' : ''}`} style={{ transitionDelay: '0.25s' }}>
+                        <div className="flex gap-4 justify-center items-stretch">
                             <Image
                                 alt="outfit 1"
                                 src="./img/fit1.svg"
-                                className="w-[46%] rounded-xl object-cover"
+                                className="w-[46%] rounded-2xl object-cover drop-shadow-xl"
                                 width={500}
                                 height={500}
                             />
                             <Image
                                 alt="outfit 2"
                                 src="./img/fit2.svg"
-                                className="w-[46%] rounded-xl object-cover"
+                                className="w-[46%] rounded-2xl object-cover drop-shadow-xl"
                                 width={500}
                                 height={500}
                             />
                         </div>
-                        <p className="mt-5 text-center text-mocha-300 text-[10px] tracking-[0.4em] uppercase">
+                        <p className="mt-5 text-center text-mocha-400 text-[10px] tracking-[0.4em] uppercase">
                             AI Generated Outfits
                         </p>
+                        {/* Decorative offset blocks */}
+                        <div className="absolute -bottom-4 -right-4 w-24 h-24 border border-mocha-200 rounded-2xl -z-10" />
+                        <div className="absolute -top-4 -left-4 w-14 h-14 border border-mocha-200 rounded-xl -z-10" />
                     </div>
                 </div>
             </div>

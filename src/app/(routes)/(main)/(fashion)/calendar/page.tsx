@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useUser } from "@/src/app/auth/auth";
-import { db } from "@/src/app/firebaseConfig/clientApp";
-import { doc, updateDoc } from "firebase/firestore";
+import { supabase } from "@/src/app/supabaseConfig/client";
 import { add, eachDayOfInterval, endOfMonth, format, getDay, isEqual, isToday, parse, startOfMonth, startOfToday } from "date-fns";
 import NotLoggedIn from "@/src/app/components/not-logged-in";
 import OutfitCard from "@/src/app/components/outfit-card";
@@ -56,65 +55,58 @@ export default function Calendar() {
 
   const handleOutfit = async (id: string) => {
     if (!user) return;
-    await updateDoc(doc(db, `users/${user.uid}/outfits`, id), {
-      Date: format(selectedDay, 'MMddyy'),
-    });
+    await supabase.from('outfits').update({ date: format(selectedDay, 'MMddyy') }).eq('id', id);
     setAddButton(false);
   };
 
   if (!user) return <NotLoggedIn />;
 
   return (
-    <div className="h-screen w-full pt-16 bg-off-white-100 text-black relative">
-      <h1 className="mx-20 text-4xl">
-        {user.displayName?.split(' ')[0]}'s Calendar
+    <div className="min-h-screen w-full pt-16 bg-off-white-100 text-black">
+      <h1 className="px-4 sm:px-8 lg:px-20 text-3xl sm:text-4xl">
+        {(user.user_metadata?.full_name ?? user.user_metadata?.name)?.split(' ')[0]}{"'s"} Calendar
       </h1>
 
-      <div className="px-12 mt-10 w-full flex justify-center gap-12">
-        <div className="max-w-2xl w-4/6 shadow-lg rounded-xl">
-          <div className="p-10 bg-white rounded-xl">
-            <div className="px-4 flex items-center justify-between">
+      <div className="px-4 sm:px-8 lg:px-12 mt-8 pb-12 flex flex-col lg:flex-row gap-6 lg:gap-10">
+
+        {/* Calendar */}
+        <div className="w-full lg:max-w-2xl shadow-lg rounded-2xl">
+          <div className="p-6 sm:p-10 bg-white rounded-2xl">
+            <div className="px-2 flex items-center justify-between mb-8">
               <span className="text-base font-bold text-gray-800">
                 {format(firstDayCurrentMonth, 'MMMM yyyy')}
               </span>
-              <div className="flex items-center">
+              <div className="flex items-center gap-3">
                 <button aria-label="calendar backward" onClick={prevMonth} className="text-gray-800 hover:text-gray-400">
-                  <ArrowLeft />
+                  <ArrowLeft size={18} />
                 </button>
-                <button aria-label="calendar forward" onClick={nextMonth} className="ml-3 text-gray-800 hover:text-gray-400">
-                  <ArrowRight />
+                <button aria-label="calendar forward" onClick={nextMonth} className="text-gray-800 hover:text-gray-400">
+                  <ArrowRight size={18} />
                 </button>
               </div>
             </div>
-            <div className="grid grid-cols-7 mt-10 mb-2 text-md leading-6 text-center text-gray-500">
-              <div>Mon</div>
-              <div>Tue</div>
-              <div>Wed</div>
-              <div>Thu</div>
-              <div>Fri</div>
-              <div>Sat</div>
-              <div>Sun</div>
+            <div className="grid grid-cols-7 mb-2 text-sm leading-6 text-center text-gray-500">
+              <div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div>
+              <div>Fri</div><div>Sat</div><div>Sun</div>
             </div>
-            <div className="grid grid-cols-7 mt-2 text-md text-black">
+            <div className="grid grid-cols-7 mt-2 text-sm text-black">
               {days.map((day, dayIdx) => (
                 <div
-                  className={`${dayIdx === 0 && colStartClasses[getDay(day)]} py-2 flex justify-center items-center `}
+                  className={`${dayIdx === 0 && colStartClasses[getDay(day)]} py-1 flex justify-center items-center`}
                   key={day.toString()}
                 >
                   <button
                     type="button"
                     onClick={() => setSelectedDay(day)}
                     className={`
-                      h-10 w-10 text-center rounded-full text-black
+                      h-9 w-9 text-center rounded-full
                       ${!isEqual(day, selectedDay) && 'hover:bg-gray-200 ease-in'}
-                      ${isToday(day) && !isEqual(day, selectedDay) && 'text-indigo-400 font-semibold'}
-                      ${isToday(day) && isEqual(day, selectedDay) && 'bg-indigo-400 text-white font-semibold'}
-                      ${isEqual(day, selectedDay) && 'bg-black text-white font-semibold'}
+                      ${isToday(day) && !isEqual(day, selectedDay) && 'text-mocha-400 font-semibold'}
+                      ${isToday(day) && isEqual(day, selectedDay) && 'bg-mocha-400 text-white font-semibold'}
+                      ${isEqual(day, selectedDay) && !isToday(day) && 'bg-mocha-500 text-white font-semibold'}
                     `}
                   >
-                    <time dateTime={format(day, 'MM-dd-yyyy')}>
-                      {format(day, 'd')}
-                    </time>
+                    <time dateTime={format(day, 'MM-dd-yyyy')}>{format(day, 'd')}</time>
                   </button>
                 </div>
               ))}
@@ -122,16 +114,26 @@ export default function Calendar() {
           </div>
         </div>
 
-        <div className="w-5/12 p-4 bg-white shadow-md rounded-xl">
+        {/* Day panel */}
+        <div className="w-full lg:flex-1 bg-white shadow-md rounded-2xl p-6">
           {outfit ? (
             <div>
-              <h2>Outfit for {format(selectedDay, 'MMMM dd, yyyy')}</h2>
-              <OutfitCard userID={user.uid} outfit={outfit} clothes={cards} deleteDate={true} />
+              <p className="text-[10px] tracking-[0.4em] uppercase text-mocha-400 mb-4">
+                {format(selectedDay, 'MMMM dd, yyyy')}
+              </p>
+              <OutfitCard userID={user.id} outfit={outfit} clothes={cards} deleteDate={true} />
             </div>
           ) : (
-            <div className="relative h-full p-4 flex justify-center items-center">
-              <p className="text-xl">No outfit for {format(selectedDay, 'MMMM dd, yyyy')}.</p>
-              <button onClick={() => { setAddButton(true) }} className="absolute top-1 right-2 p-2 bg-mocha-150 rounded-3xl"><IoMdAdd className="text-2xl text-white" /></button>
+            <div className="h-full min-h-40 flex flex-col justify-center items-center gap-4">
+              <p className="text-[10px] tracking-[0.4em] uppercase text-mocha-300 text-center">
+                No outfit — {format(selectedDay, 'MMMM dd, yyyy')}
+              </p>
+              <button
+                onClick={() => setAddButton(true)}
+                className="flex items-center gap-2 px-5 py-2.5 border border-mocha-300 text-mocha-500 text-[10px] tracking-[0.3em] uppercase rounded-full hover:bg-mocha-500 hover:text-mocha-100 hover:border-mocha-500 transition-all duration-300"
+              >
+                <IoMdAdd size={14} /> Add outfit
+              </button>
             </div>
           )}
         </div>
@@ -139,37 +141,52 @@ export default function Calendar() {
 
       {/* Add outfit modal */}
       {addButton && (
-        <div className="absolute w-full h-full top-0 bg-black z-50 flex justify-center items-center bg-opacity-20">
-          <div className="w-3/4 h-4/6 p-3 bg-white opacity-100 rounded-xl relative">
-            <div className="h-4/6 flex justify-center">
-              <div className="w-7/8 h-fit flex flex-wrap justify-center overflow-y-scroll ">
-                {outfits.length > 0 ? (
-                  outfits.map((something) => (
-                    <div key={something.id}>
-                      <button
-                        className={fit === something.id ? "bg-indigo-400 text-white" : "bg-white"}
-                        onClick={() => setFit(something.id)}
-                      >
-                        <OutfitCard userID={user.uid} outfit={something} clothes={cards} canEdit={false} deleteDate={true} />
-                      </button>
-                    </div>
-                  ))
-                ) : (
-                  <p>No outfits found.</p>
-                )}
-              </div>
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex justify-center items-center p-4">
+          <div className="relative w-full max-w-2xl bg-off-white-100 rounded-3xl p-6 sm:p-8 shadow-2xl flex flex-col gap-6">
+
+            <button
+              onClick={() => setAddButton(false)}
+              className="absolute top-5 right-5 w-8 h-8 flex items-center justify-center rounded-full border border-mocha-200 text-mocha-400 hover:border-mocha-400 hover:text-mocha-500 transition-all duration-200"
+              aria-label="Close"
+            >
+              <span className="text-xs leading-none">✕</span>
+            </button>
+
+            <div>
+              <p className="text-[10px] tracking-[0.5em] uppercase text-mocha-400 mb-2">
+                {format(selectedDay, 'MMMM dd, yyyy')}
+              </p>
+              <h2 className="font-cormorant text-4xl font-light text-mocha-500">
+                Pick an <span className="italic text-mocha-400">outfit.</span>
+              </h2>
+            </div>
+
+            <div className="h-64 sm:h-80 overflow-y-auto rounded-2xl border border-mocha-200">
+              {outfits.length > 0 ? (
+                <div className="flex flex-wrap justify-center gap-3 p-4">
+                  {outfits.map((something) => (
+                    <button
+                      key={something.id}
+                      onClick={() => setFit(something.id)}
+                      className={`rounded-2xl border-2 transition-all duration-200 ${fit === something.id ? 'border-mocha-500 scale-105' : 'border-transparent'}`}
+                    >
+                      <OutfitCard userID={user.id} outfit={something} clothes={cards} canEdit={false} deleteDate={true} />
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="h-full flex items-center justify-center">
+                  <p className="text-[10px] tracking-[0.4em] uppercase text-mocha-300">No outfits found</p>
+                </div>
+              )}
             </div>
 
             <button
-              className="w-fit mt-6 p-2 px-3 bg-mocha-300 rounded-lg text-white hover:text-mocha-500 duration-300 disabled:cursor-not-allowed"
               onClick={() => fit && handleOutfit(fit)}
               disabled={!fit}
+              className="w-full py-3.5 bg-mocha-500 text-mocha-100 text-[11px] tracking-[0.3em] uppercase rounded-full hover:bg-mocha-400 transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              Fold away
-            </button>
-
-            <button onClick={() => { setAddButton(false) }} className="absolute top-0 right-0">
-              <TiDelete className="text-3xl text-rose-600" />
+              Assign to Day
             </button>
           </div>
         </div>

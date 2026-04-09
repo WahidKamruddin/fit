@@ -1,9 +1,7 @@
 "use client"
 
 import { createContext, useContext, useEffect, useState } from "react";
-import { onSnapshot, collection, query } from "firebase/firestore";
-import { User } from "firebase/auth";
-import { db } from "../firebaseConfig/clientApp";
+import { supabase } from "../supabaseConfig/client";
 import { useUser } from "../auth/auth";
 import Clothing from "../classes/clothes";
 
@@ -39,46 +37,61 @@ export function ClosetProvider({ children }: { children: React.ReactNode }) {
   const [hasClothes, setHasClothes] = useState(false);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      setCards([]);
+      setOutfits([]);
+      setHasClothes(false);
+      return;
+    }
 
-    const uid = user.uid;
+    const uid = user.id;
 
-    const clothesQuery = query(collection(db, `users/${uid}/clothes`));
-    const unsubClothes = onSnapshot(clothesQuery, (snapshot) => {
-      const clothesArr: ClothingCard[] = [];
+    const fetchAll = async () => {
+      const { data: clothesData } = await supabase
+        .from('clothes')
+        .select('*')
+        .eq('user_id', uid);
 
-      snapshot.forEach((doc) => {
-        const data = doc.data();
-        const clothing = new Clothing(
-          data.Name,
-          data.Color,
-          data.Type,
-          data.Image,
-          data.Style
-        );
-        clothesArr.push({ clothing, id: doc.id });
-      });
+      if (clothesData) {
+        const clothesArr: ClothingCard[] = clothesData.map((row) => {
+          const clothing = new Clothing(row.name, row.color, row.type, row.image, row.material, row.style);
+          clothing.starred = row.starred;
+          return { clothing, id: row.id };
+        });
+        setCards(clothesArr);
+        setHasClothes(clothesArr.length > 0);
+      }
 
-      setCards(clothesArr);
-      setHasClothes(clothesArr.length > 0);
-    });
+      const { data: outfitsData } = await supabase
+        .from('outfits')
+        .select('*')
+        .eq('user_id', uid);
 
-    const outfitsQuery = query(collection(db, `users/${uid}/outfits`));
-    const unsubOutfits = onSnapshot(outfitsQuery, (snapshot) => {
-      const outfitArr: OutfitDoc[] = [];
+      if (outfitsData) {
+        const outfitArr: OutfitDoc[] = outfitsData.map((row) => ({
+          id: row.id,
+          OuterWear: row.outer_wear,
+          Top: row.top,
+          Bottom: row.bottom,
+          Date: row.date,
+        }));
+        setOutfits(outfitArr);
+      }
+    };
 
-      snapshot.forEach((doc) => {
-        outfitArr.push({ ...doc.data(), id: doc.id } as OutfitDoc);
-      });
+    fetchAll();
 
-      setOutfits(outfitArr);
-    });
+    // Real-time subscription — refetch on any change to clothes or outfits
+    const channel = supabase
+      .channel(`closet-${uid}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'clothes', filter: `user_id=eq.${uid}` }, fetchAll)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'outfits', filter: `user_id=eq.${uid}` }, fetchAll)
+      .subscribe();
 
     return () => {
-      unsubClothes();
-      unsubOutfits();
+      supabase.removeChannel(channel);
     };
-  }, [user]);
+  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <ClosetContext.Provider value={{ cards, outfits, hasClothes }}>

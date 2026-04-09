@@ -1,8 +1,7 @@
 import { FaMinusCircle, FaStar } from "react-icons/fa";
 import { AiOutlineStar } from "react-icons/ai";
 import { useState } from "react";
-import { deleteDoc, doc, updateDoc } from "firebase/firestore";
-import { db } from "../firebaseConfig/clientApp";
+import { supabase } from "../supabaseConfig/client";
 import Clothing from "../classes/clothes";
 
 interface CardProps {
@@ -19,13 +18,11 @@ const Card = ({ userID, aClothing, edit, select, handleOuterWear }: CardProps) =
   const toggleFavorite = async () => {
     const newStarred = !starred;
     setStarred(newStarred);
-    await updateDoc(doc(db, `users/${userID}/clothes`, aClothing.id), {
-      Starred: newStarred,
-    });
+    await supabase.from('clothes').update({ starred: newStarred }).eq('id', aClothing.id);
   };
 
   const deleteClothing = async () => {
-    await deleteDoc(doc(db, `users/${userID}/clothes`, aClothing.id));
+    await supabase.from('clothes').delete().eq('id', aClothing.id);
   };
 
   return (

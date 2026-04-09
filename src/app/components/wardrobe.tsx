@@ -21,15 +21,13 @@ export default function Wardrobe() {
 
                     {/* Image panel */}
                     <div className={`relative reveal-left ${inView ? 'is-visible' : ''}`} style={{ transitionDelay: '0.1s' }}>
-                        <div className="bg-white rounded-3xl shadow-xl shadow-mocha-300/20 ">
-                            <Image
-                                alt="virtual closet"
-                                src="./img/virtualCloset.svg"
-                                className="rounded-xl w-full"
-                                width={700}
-                                height={600}
-                            />
-                        </div>
+                        <Image
+                            alt="virtual closet"
+                            src="./img/virtualCloset.svg"
+                            className="rounded-2xl w-full drop-shadow-xl"
+                            width={700}
+                            height={600}
+                        />
                         {/* Decorative offset blocks */}
                         <div className="absolute -bottom-4 -right-4 w-24 h-24 border border-mocha-200 rounded-2xl -z-10" />
                         <div className="absolute -top-4 -left-4 w-14 h-14 border border-mocha-200 rounded-xl -z-10" />

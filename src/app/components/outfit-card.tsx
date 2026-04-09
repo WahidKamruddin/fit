@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { deleteDoc, doc, updateDoc } from "firebase/firestore";
-import { db } from "../firebaseConfig/clientApp";
+import { supabase } from "../supabaseConfig/client";
 import Clothing from "../classes/clothes";
 
 interface ClothingCard {
@@ -33,14 +32,12 @@ const OutfitCard = ({ userID, outfit, clothes, canEdit, deleteDate }: OutfitCard
 
   const deleteOutfit = async () => {
     if (!userID) return;
-    await deleteDoc(doc(db, `users/${userID}/outfits`, outfit.id));
+    await supabase.from('outfits').delete().eq('id', outfit.id);
   };
 
   const clearDate = async () => {
     if (!userID) return;
-    await updateDoc(doc(db, `users/${userID}/outfits`, outfit.id), {
-      Date: null,
-    });
+    await supabase.from('outfits').update({ date: null }).eq('id', outfit.id);
   };
 
   useEffect(() => {

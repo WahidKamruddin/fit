@@ -21,13 +21,13 @@ interface OutfitCardProps {
   outfit: OutfitDoc;
   clothes: ClothingCard[];
   canEdit?: boolean;
-  deleteDate?: boolean;
+  onClearDate?: () => void;
   onLongPress?: () => void;
 }
 
-const OutfitCard = ({ userID, outfit, clothes, canEdit, deleteDate, onLongPress }: OutfitCardProps) => {
+const OutfitCard = ({ userID, outfit, clothes, canEdit, onClearDate, onLongPress }: OutfitCardProps) => {
   const { OuterWear, Top, Bottom } = outfit;
-  const { removeOutfit, updateOutfitDate } = useCloset();
+  const { removeOutfit } = useCloset();
 
   const [oWImg, setoWImg] = useState<string | undefined>();
   const [topImg, setTopImg] = useState<string | undefined>();
@@ -39,12 +39,6 @@ const OutfitCard = ({ userID, outfit, clothes, canEdit, deleteDate, onLongPress 
     if (!userID) return;
     removeOutfit(outfit.id);
     await supabase.from('outfits').delete().eq('id', outfit.id);
-  };
-
-  const clearDate = async () => {
-    if (!userID) return;
-    updateOutfitDate(outfit.id, null);
-    await supabase.from('outfits').update({ date: null }).eq('id', outfit.id);
   };
 
   const startPress = () => {
@@ -92,10 +86,10 @@ const OutfitCard = ({ userID, outfit, clothes, canEdit, deleteDate, onLongPress 
       )}
 
       {/* Clear date button */}
-      {deleteDate && (
+      {onClearDate && (
         <button
           className="absolute -top-2 -right-2 z-20 w-6 h-6 flex items-center justify-center rounded-full bg-red-500 text-white shadow-md text-xs leading-none font-medium transition-transform duration-150 hover:scale-110 active:scale-95"
-          onClick={clearDate}
+          onClick={onClearDate}
           aria-label="Remove from day"
         >
           ✕

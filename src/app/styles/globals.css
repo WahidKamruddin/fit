@@ -179,6 +179,17 @@ body {
     opacity: 0;
 }
 
+@keyframes wiggle {
+    0%   { transform: rotate(-1.5deg); }
+    50%  { transform: rotate(1.5deg); }
+    100% { transform: rotate(-1.5deg); }
+}
+
+.animate-wiggle {
+    animation: wiggle 0.35s ease-in-out infinite;
+    transform-origin: center;
+}
+
 /* ── Scroll-reveal ──────────────────────────────────────────────── */
 .reveal {
     opacity: 0;

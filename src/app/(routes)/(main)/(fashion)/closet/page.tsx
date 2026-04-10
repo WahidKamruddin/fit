@@ -2,18 +2,15 @@
 
 import Clothing from "@/src/app/classes/clothes";
 import { useState } from "react";
-import { HiViewGrid } from "react-icons/hi";
 import { IoMdAdd } from "react-icons/io";
-import { BiSortAlt2 } from "react-icons/bi";
-import { TiDelete } from "react-icons/ti";
 import { supabase } from "@/src/app/supabaseConfig/client";
 import CardList from "@/src/app/components/card-list";
 import { FileUploader } from "react-drag-drop-files";
 import { useUser } from "@/src/app/auth/auth";
-import NotLoggedIn from "@/src/app/components/not-logged-in";
 import { v4 } from "uuid";
 import { useCloset } from "@/src/app/providers/closetContext";
 import { Pencil } from "lucide-react";
+import PageSkeleton from "@/src/app/components/page-skeleton";
 
 
 export default function Closet() {
@@ -31,13 +28,15 @@ export default function Closet() {
   const [clothingType, setClothingType] = useState('');
 
   // Fetch data states
-  const { cards, hasClothes } = useCloset();
+  const { cards, hasClothes, addCard } = useCloset();
 
   // Add data states
   const [add, setAdd] = useState(false);
   const [edit, setEdit] = useState(false);
   const [file, setFile] = useState<File | null>(null);
-  const [img, setImg] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [loadingStep, setLoadingStep] = useState('');
+
 
   const fileTypes = ["JPG", "JPEG", "PNG", "GIF"];
 
@@ -60,7 +59,6 @@ export default function Closet() {
       if (response.ok) {
         const blob = await response.blob();
         const processedImageFile = new File([blob], "processed-image.png", { type: "image/png" });
-        setImg(URL.createObjectURL(blob));
         return processedImageFile;
       } else {
         throw new Error("Failed to remove background");
@@ -74,12 +72,20 @@ export default function Closet() {
   const createClothing = async (e: React.FormEvent) => {
     e.preventDefault();
     setAdd(false);
+    setLoading(true);
 
-    const processedFile = await handleBackgroundRemoval();
+    try {
+      setLoadingStep('Removing background…');
+      const processedFile = await handleBackgroundRemoval();
 
-    if (processedFile && user) {
-      const someClothing = new Clothing(clothingName, clothingColor, clothingType);
-      await addItem(someClothing, processedFile);
+      if (processedFile && user) {
+        const someClothing = new Clothing(clothingName, clothingColor, clothingType);
+        setLoadingStep('Uploading image…');
+        await addItem(someClothing, processedFile);
+      }
+    } finally {
+      setLoading(false);
+      setLoadingStep('');
     }
   };
 
@@ -93,7 +99,7 @@ export default function Closet() {
   };
 
   const addClothing = async (someClothing: Clothing, imgUrl: string, imageID: string) => {
-    await supabase.from('clothes').insert({
+    const { data } = await supabase.from('clothes').insert({
       user_id: user!.id,
       name: someClothing.getName(),
       color: someClothing.getColor(),
@@ -102,7 +108,13 @@ export default function Closet() {
       image_id: imageID,
       material: someClothing.getMaterial(),
       style: someClothing.getStyle(),
-    });
+    }).select().single();
+
+    if (data) {
+      const clothing = new Clothing(data.name, data.color, data.type, data.image, data.material, data.style);
+      clothing.starred = data.starred;
+      addCard({ clothing, id: data.id, imageId: data.image_id });
+    }
   };
 
   const filterAll = () => { setAll(true); setOuterWear(false); setTops(false); setBottoms(false); };
@@ -110,34 +122,122 @@ export default function Closet() {
   const filterTops = () => { setAll(false); setOuterWear(false); setTops(true); setBottoms(false); };
   const filterBottoms = () => { setAll(false); setOuterWear(false); setTops(false); setBottoms(true); };
 
-  if (!user) return <NotLoggedIn />;
+  if (!user) return <PageSkeleton />;
+
+  const firstName = (user.user_metadata?.full_name ?? user.user_metadata?.name)?.split(' ')[0] ?? 'Your';
+
+  const filters = [
+    { label: 'All',       active: all,       onClick: filterAll       },
+    { label: 'Outerwear', active: outerWear,  onClick: filterOuterWear },
+    { label: 'Tops',      active: tops,       onClick: filterTops      },
+    { label: 'Bottoms',   active: bottoms,    onClick: filterBottoms   },
+  ];
+
+  const activeCards = all        ? cards
+    : outerWear ? cards.filter(c => c.clothing.getType() === 'Outerwear')
+    : tops      ? cards.filter(c => c.clothing.getType() === 'Top')
+    : bottoms   ? cards.filter(c => c.clothing.getType() === 'Bottom')
+    : cards;
 
   return (
-    <div className="min-h-screen bg-off-white-100 text-black">
-      <h1 className="pt-16 text-3xl sm:text-4xl px-4 sm:px-8 lg:px-20">{(user.user_metadata?.full_name ?? user.user_metadata?.name)?.split(' ')[0]}{"'s"} Closet</h1>
+    <div className="min-h-screen bg-off-white-100">
 
-      {/* Header */}
-      <div className="mt-5 px-4 sm:px-8 lg:px-20 flex flex-wrap gap-4 justify-between items-center">
-        <ul className="flex gap-5 sm:gap-8 text-lg sm:text-xl font-light overflow-x-auto">
-          <li className={`pb-1 border-b-2 whitespace-nowrap ${!all ? 'border-transparent' : 'border-black'} hover:border-black hover:duration-700`}><button onClick={filterAll}>All</button></li>
-          <li className={`pb-1 border-b-2 whitespace-nowrap ${!outerWear ? 'border-transparent' : 'border-black'} hover:border-black hover:duration-700`}><button onClick={filterOuterWear}>Outerwear</button></li>
-          <li className={`pb-1 border-b-2 whitespace-nowrap ${!tops ? 'border-transparent' : 'border-black'} hover:border-black hover:duration-700`}><button onClick={filterTops}>Tops</button></li>
-          <li className={`pb-1 border-b-2 whitespace-nowrap ${!bottoms ? 'border-transparent' : 'border-black'} hover:border-black hover:duration-700`}><button onClick={filterBottoms}>Bottoms</button></li>
-        </ul>
-        <div className="flex items-center gap-2 sm:gap-4">
-          <div className="mt-2 bg-mocha-150 text-white py-2 px-3 rounded-lg flex items-center gap-1 cursor-not-allowed text-sm">Sort <BiSortAlt2 className="text-lg text-white" /></div>
-          <div className="p-2 mt-2 bg-mocha-150 rounded-3xl cursor-not-allowed"><HiViewGrid className="text-xl text-white" /></div>
-          <button onClick={() => setAdd(true)} className="p-2 mt-2 bg-mocha-150 rounded-3xl"><IoMdAdd className="text-xl text-white" /></button>
-          <button onClick={() => setEdit(!edit)} className="p-2 mt-2 bg-mocha-150 rounded-3xl"><Pencil size={18} className="text-white"/></button>
+      {/* ── Page header ──────────────────────────────────────── */}
+      <div className="pt-16 px-4 sm:px-8 lg:px-20">
+
+        {/* Overline */}
+        <div className="pt-8 flex items-center gap-4 animate-fade-in" style={{ animationDelay: '0.05s' }}>
+          <span className="text-[10px] text-mocha-400 tracking-[0.5em] uppercase">Wardrobe</span>
+          <div className="w-8 h-px bg-mocha-300" />
+          <span className="text-[10px] text-mocha-400 tracking-[0.5em] uppercase">{cards.length} {cards.length === 1 ? 'item' : 'items'}</span>
+        </div>
+
+        {/* Title + actions row */}
+        <div className="mt-3 flex flex-wrap items-end justify-between gap-4">
+          <h1
+            className="font-cormorant font-light text-mocha-500 leading-[0.95] animate-fade-in-up"
+            style={{ fontSize: 'clamp(2.8rem, 5vw, 4.5rem)', animationDelay: '0.15s' }}
+          >
+            {firstName}{"'s"}<br />
+            <span className="italic text-mocha-400">Closet.</span>
+          </h1>
+
+          {/* Action buttons */}
+          <div className="flex items-center gap-2 sm:gap-3 pb-1 animate-fade-in" style={{ animationDelay: '0.25s' }}>
+            <button
+              onClick={() => setAdd(true)}
+              className="flex items-center gap-2 px-5 py-2.5 bg-mocha-500 text-mocha-100 text-[10px] tracking-[0.3em] uppercase rounded-full hover:bg-mocha-400 transition-all duration-300"
+            >
+              <IoMdAdd size={13} />
+              Add
+            </button>
+            <button
+              onClick={() => setEdit(!edit)}
+              className={`flex items-center gap-2 px-5 py-2.5 text-[10px] tracking-[0.3em] uppercase rounded-full border transition-all duration-300 ${
+                edit
+                  ? 'bg-mocha-500 text-mocha-100 border-mocha-500'
+                  : 'border-mocha-300 text-mocha-500 hover:border-mocha-500'
+              }`}
+            >
+              <Pencil size={11} />
+              {edit ? 'Done' : 'Edit'}
+            </button>
+          </div>
+        </div>
+
+        {/* Divider */}
+        <div className="mt-6 h-px bg-mocha-200 animate-fade-in" style={{ animationDelay: '0.3s' }} />
+
+        {/* Filter pills */}
+        <div className="mt-5 flex gap-2 overflow-x-auto pb-1 animate-fade-in" style={{ animationDelay: '0.35s' }}>
+          {filters.map(({ label, active, onClick }) => (
+            <button
+              key={label}
+              onClick={onClick}
+              className={`px-5 py-2 rounded-full text-[10px] tracking-[0.3em] uppercase whitespace-nowrap transition-all duration-300 ${
+                active
+                  ? 'bg-mocha-500 text-mocha-100'
+                  : 'border border-mocha-200 text-mocha-400 hover:border-mocha-400 hover:text-mocha-500'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Clothing cards */}
-      <div className="mt-10 px-4 sm:px-8 lg:px-20 pb-12">
-        {all ? <CardList userID={user.id} cards={cards} hasClothes={hasClothes} edit={edit} select={false} />
-          : outerWear ? <CardList userID={user.id} cards={cards.filter((card) => card.clothing.getType() === 'Outerwear')} hasClothes={hasClothes} edit={edit} select={false} />
-            : tops ? <CardList userID={user.id} cards={cards.filter((card) => card.clothing.getType() === 'Top')} hasClothes={hasClothes} edit={edit} select={false} />
-              : bottoms ? <CardList userID={user.id} cards={cards.filter((card) => card.clothing.getType() === 'Bottom')} hasClothes={hasClothes} edit={edit} select={false} /> : null}
+      {/* ── Clothing grid ─────────────────────────────────────── */}
+      <div className="mt-8 px-4 sm:px-8 lg:px-20 pb-16 animate-fade-in" style={{ animationDelay: '0.45s' }}>
+        {hasClothes ? (
+          <CardList
+            userID={user.id}
+            cards={activeCards}
+            hasClothes={activeCards.length > 0}
+            edit={edit}
+            select={false}
+            onLongPress={() => setEdit(true)}
+          />
+        ) : (
+          /* Empty state */
+          <div className="flex flex-col items-center justify-center py-32 animate-fade-in" style={{ animationDelay: '0.4s' }}>
+            <span className="font-cormorant text-[6rem] font-light text-mocha-200/60 leading-none select-none">
+              00
+            </span>
+            <p className="mt-2 font-cormorant text-3xl font-light text-mocha-400">
+              Your closet is empty.
+            </p>
+            <p className="mt-3 text-[10px] tracking-[0.4em] uppercase text-mocha-300 text-center max-w-xs">
+              Add your first piece to start building your digital wardrobe
+            </p>
+            <button
+              onClick={() => setAdd(true)}
+              className="mt-8 flex items-center gap-2 px-7 py-3 bg-mocha-500 text-mocha-100 text-[10px] tracking-[0.35em] uppercase rounded-full hover:bg-mocha-400 transition-all duration-300"
+            >
+              <IoMdAdd size={13} />
+              Add Clothing
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Add clothing modal */}
@@ -253,6 +353,16 @@ export default function Closet() {
             >
               Uniqlo
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Loading overlay */}
+      {loading && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex justify-center items-center">
+          <div className="bg-off-white-100 rounded-3xl px-10 py-8 shadow-2xl flex flex-col items-center gap-4">
+            <div className="w-7 h-7 rounded-full border-2 border-mocha-300 border-t-mocha-500 animate-spin" />
+            <p className="text-[10px] tracking-[0.4em] uppercase text-mocha-400">{loadingStep}</p>
           </div>
         </div>
       )}

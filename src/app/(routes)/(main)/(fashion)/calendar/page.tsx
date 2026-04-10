@@ -4,12 +4,11 @@ import { useEffect, useState } from "react";
 import { useUser } from "@/src/app/auth/auth";
 import { supabase } from "@/src/app/supabaseConfig/client";
 import { add, eachDayOfInterval, endOfMonth, format, getDay, isEqual, isToday, parse, startOfMonth, startOfToday } from "date-fns";
-import NotLoggedIn from "@/src/app/components/not-logged-in";
 import OutfitCard from "@/src/app/components/outfit-card";
-import { TiDelete } from "react-icons/ti";
 import { IoMdAdd } from "react-icons/io";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useCloset } from "@/src/app/providers/closetContext";
+import PageSkeleton from "@/src/app/components/page-skeleton";
 
 interface Outfit {
   id: string;
@@ -23,7 +22,7 @@ export default function Calendar() {
   const [outfit, setOutfit] = useState<Outfit | null>(null);
   const [fit, setFit] = useState<string | null>(null);
 
-  const { cards, outfits } = useCloset();
+  const { cards, outfits, updateOutfitDate } = useCloset();
 
   const [addButton, setAddButton] = useState(false);
 
@@ -55,84 +54,134 @@ export default function Calendar() {
 
   const handleOutfit = async (id: string) => {
     if (!user) return;
-    await supabase.from('outfits').update({ date: format(selectedDay, 'MMddyy') }).eq('id', id);
+    const date = format(selectedDay, 'MMddyy');
+    updateOutfitDate(id, date);
     setAddButton(false);
+    await supabase.from('outfits').update({ date }).eq('id', id);
   };
 
-  if (!user) return <NotLoggedIn />;
+  if (!user) return <PageSkeleton />;
+
+  const firstName = (user.user_metadata?.full_name ?? user.user_metadata?.name)?.split(' ')[0] ?? 'Your';
 
   return (
-    <div className="min-h-screen w-full pt-16 bg-off-white-100 text-black">
-      <h1 className="px-4 sm:px-8 lg:px-20 text-3xl sm:text-4xl">
-        {(user.user_metadata?.full_name ?? user.user_metadata?.name)?.split(' ')[0]}{"'s"} Calendar
-      </h1>
+    <div className="min-h-screen w-full pt-16 bg-off-white-100">
 
-      <div className="px-4 sm:px-8 lg:px-12 mt-8 pb-12 flex flex-col lg:flex-row gap-6 lg:gap-10">
+      {/* ── Page header ──────────────────────────────────────── */}
+      <div className="px-4 sm:px-8 lg:px-20">
+        <div className="pt-8">
+          <div className="flex items-center gap-4 animate-fade-in" style={{ animationDelay: '0.05s' }}>
+            <span className="text-[10px] text-mocha-400 tracking-[0.5em] uppercase">Schedule</span>
+            <div className="w-8 h-px bg-mocha-300" />
+            <span className="text-[10px] text-mocha-400 tracking-[0.5em] uppercase">
+              {format(firstDayCurrentMonth, 'MMMM yyyy')}
+            </span>
+          </div>
+          <h1
+            className="mt-3 font-cormorant font-light text-mocha-500 leading-[0.95] animate-fade-in-up"
+            style={{ fontSize: 'clamp(2.8rem, 5vw, 4.5rem)', animationDelay: '0.15s' }}
+          >
+            {firstName}{"'s"}<br />
+            <span className="italic text-mocha-400">Calendar.</span>
+          </h1>
+          <div className="mt-6 h-px bg-mocha-200 animate-fade-in" style={{ animationDelay: '0.3s' }} />
+        </div>
+      </div>
 
-        {/* Calendar */}
-        <div className="w-full lg:max-w-2xl shadow-lg rounded-2xl">
-          <div className="p-6 sm:p-10 bg-white rounded-2xl">
-            <div className="px-2 flex items-center justify-between mb-8">
-              <span className="text-base font-bold text-gray-800">
-                {format(firstDayCurrentMonth, 'MMMM yyyy')}
-              </span>
-              <div className="flex items-center gap-3">
-                <button aria-label="calendar backward" onClick={prevMonth} className="text-gray-800 hover:text-gray-400">
-                  <ArrowLeft size={18} />
-                </button>
-                <button aria-label="calendar forward" onClick={nextMonth} className="text-gray-800 hover:text-gray-400">
-                  <ArrowRight size={18} />
+      {/* ── Main layout ──────────────────────────────────────── */}
+      <div className="px-4 sm:px-8 lg:px-12 mt-8 pb-16 flex flex-col lg:flex-row gap-6 lg:gap-8 animate-fade-in" style={{ animationDelay: '0.35s' }}>
+
+        {/* Calendar widget */}
+        <div className="w-full lg:max-w-xl bg-white rounded-2xl shadow-sm border border-mocha-200/60 p-6 sm:p-8">
+
+          {/* Month nav */}
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="font-cormorant text-2xl font-light text-mocha-500">
+              {format(firstDayCurrentMonth, 'MMMM')}{' '}
+              <span className="text-mocha-400">{format(firstDayCurrentMonth, 'yyyy')}</span>
+            </h2>
+            <div className="flex items-center gap-1">
+              <button
+                aria-label="previous month"
+                onClick={prevMonth}
+                className="w-8 h-8 flex items-center justify-center rounded-full border border-mocha-200 text-mocha-400 hover:border-mocha-400 hover:text-mocha-500 transition-all duration-200"
+              >
+                <ArrowLeft size={14} />
+              </button>
+              <button
+                aria-label="next month"
+                onClick={nextMonth}
+                className="w-8 h-8 flex items-center justify-center rounded-full border border-mocha-200 text-mocha-400 hover:border-mocha-400 hover:text-mocha-500 transition-all duration-200"
+              >
+                <ArrowRight size={14} />
+              </button>
+            </div>
+          </div>
+
+          {/* Day-of-week headers */}
+          <div className="grid grid-cols-7 mb-3 text-center">
+            {['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d => (
+              <div key={d} className="text-[10px] tracking-[0.3em] uppercase text-mocha-300">{d}</div>
+            ))}
+          </div>
+
+          {/* Day grid */}
+          <div className="grid grid-cols-7">
+            {days.map((day, dayIdx) => (
+              <div
+                key={day.toString()}
+                className={`${dayIdx === 0 ? colStartClasses[getDay(day)] : ''} py-1 flex justify-center`}
+              >
+                <button
+                  type="button"
+                  onClick={() => setSelectedDay(day)}
+                  className={[
+                    'h-9 w-9 flex items-center justify-center rounded-full text-sm transition-all duration-200',
+                    isEqual(day, selectedDay) && isToday(day)
+                      ? 'bg-mocha-400 text-white font-semibold'
+                      : isEqual(day, selectedDay)
+                      ? 'bg-mocha-500 text-white font-semibold'
+                      : isToday(day)
+                      ? 'text-mocha-400 font-semibold hover:bg-mocha-100'
+                      : 'text-mocha-500 hover:bg-mocha-100',
+                  ].join(' ')}
+                >
+                  <time dateTime={format(day, 'MM-dd-yyyy')}>{format(day, 'd')}</time>
                 </button>
               </div>
-            </div>
-            <div className="grid grid-cols-7 mb-2 text-sm leading-6 text-center text-gray-500">
-              <div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div>
-              <div>Fri</div><div>Sat</div><div>Sun</div>
-            </div>
-            <div className="grid grid-cols-7 mt-2 text-sm text-black">
-              {days.map((day, dayIdx) => (
-                <div
-                  className={`${dayIdx === 0 && colStartClasses[getDay(day)]} py-1 flex justify-center items-center`}
-                  key={day.toString()}
-                >
-                  <button
-                    type="button"
-                    onClick={() => setSelectedDay(day)}
-                    className={`
-                      h-9 w-9 text-center rounded-full
-                      ${!isEqual(day, selectedDay) && 'hover:bg-gray-200 ease-in'}
-                      ${isToday(day) && !isEqual(day, selectedDay) && 'text-mocha-400 font-semibold'}
-                      ${isToday(day) && isEqual(day, selectedDay) && 'bg-mocha-400 text-white font-semibold'}
-                      ${isEqual(day, selectedDay) && !isToday(day) && 'bg-mocha-500 text-white font-semibold'}
-                    `}
-                  >
-                    <time dateTime={format(day, 'MM-dd-yyyy')}>{format(day, 'd')}</time>
-                  </button>
-                </div>
-              ))}
-            </div>
+            ))}
           </div>
         </div>
 
         {/* Day panel */}
-        <div className="w-full lg:flex-1 bg-white shadow-md rounded-2xl p-6">
+        <div className="w-full lg:flex-1 bg-white rounded-2xl shadow-sm border border-mocha-200/60 p-6 sm:p-8">
           {outfit ? (
             <div>
-              <p className="text-[10px] tracking-[0.4em] uppercase text-mocha-400 mb-4">
-                {format(selectedDay, 'MMMM dd, yyyy')}
+              <p className="text-[10px] tracking-[0.5em] uppercase text-mocha-400 mb-2">
+                Outfit for
               </p>
+              <p className="font-cormorant text-2xl font-light text-mocha-500 mb-6">
+                {format(selectedDay, 'MMMM d, yyyy')}
+              </p>
+              <div className="h-px bg-mocha-200 mb-6" />
               <OutfitCard userID={user.id} outfit={outfit} clothes={cards} deleteDate={true} />
             </div>
           ) : (
-            <div className="h-full min-h-40 flex flex-col justify-center items-center gap-4">
-              <p className="text-[10px] tracking-[0.4em] uppercase text-mocha-300 text-center">
-                No outfit — {format(selectedDay, 'MMMM dd, yyyy')}
-              </p>
+            <div className="h-full min-h-48 flex flex-col justify-center items-center gap-5">
+              <div className="text-center">
+                <p className="text-[10px] tracking-[0.5em] uppercase text-mocha-300 mb-2">
+                  {format(selectedDay, 'MMMM d, yyyy')}
+                </p>
+                <p className="font-cormorant text-2xl font-light text-mocha-400">
+                  No outfit planned.
+                </p>
+              </div>
               <button
                 onClick={() => setAddButton(true)}
-                className="flex items-center gap-2 px-5 py-2.5 border border-mocha-300 text-mocha-500 text-[10px] tracking-[0.3em] uppercase rounded-full hover:bg-mocha-500 hover:text-mocha-100 hover:border-mocha-500 transition-all duration-300"
+                className="flex items-center gap-2 px-6 py-2.5 bg-mocha-500 text-mocha-100 text-[10px] tracking-[0.3em] uppercase rounded-full hover:bg-mocha-400 transition-all duration-300"
               >
-                <IoMdAdd size={14} /> Add outfit
+                <IoMdAdd size={13} />
+                Plan outfit
               </button>
             </div>
           )}
@@ -170,7 +219,7 @@ export default function Calendar() {
                       onClick={() => setFit(something.id)}
                       className={`rounded-2xl border-2 transition-all duration-200 ${fit === something.id ? 'border-mocha-500 scale-105' : 'border-transparent'}`}
                     >
-                      <OutfitCard userID={user.id} outfit={something} clothes={cards} canEdit={false} deleteDate={true} />
+                      <OutfitCard userID={user.id} outfit={something} clothes={cards} canEdit={false} deleteDate={false} />
                     </button>
                   ))}
                 </div>

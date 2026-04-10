@@ -8,6 +8,7 @@ import Clothing from "../classes/clothes";
 interface ClothingCard {
   clothing: Clothing;
   id: string;
+  imageId: string | null;
 }
 
 interface OutfitDoc {
@@ -22,12 +23,22 @@ interface ClosetContextValue {
   cards: ClothingCard[];
   outfits: OutfitDoc[];
   hasClothes: boolean;
+  removeCard: (id: string) => void;
+  addCard: (card: ClothingCard) => void;
+  addOutfit: (outfit: OutfitDoc) => void;
+  removeOutfit: (id: string) => void;
+  updateOutfitDate: (id: string, date: string | null) => void;
 }
 
 export const ClosetContext = createContext<ClosetContextValue>({
   cards: [],
   outfits: [],
   hasClothes: false,
+  removeCard: () => {},
+  addCard: () => {},
+  addOutfit: () => {},
+  removeOutfit: () => {},
+  updateOutfitDate: () => {},
 });
 
 export function ClosetProvider({ children }: { children: React.ReactNode }) {
@@ -56,7 +67,7 @@ export function ClosetProvider({ children }: { children: React.ReactNode }) {
         const clothesArr: ClothingCard[] = clothesData.map((row) => {
           const clothing = new Clothing(row.name, row.color, row.type, row.image, row.material, row.style);
           clothing.starred = row.starred;
-          return { clothing, id: row.id };
+          return { clothing, id: row.id, imageId: row.image_id ?? null };
         });
         setCards(clothesArr);
         setHasClothes(clothesArr.length > 0);
@@ -93,8 +104,36 @@ export function ClosetProvider({ children }: { children: React.ReactNode }) {
     };
   }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const addCard = (card: ClothingCard) => {
+    setCards((prev) => {
+      const updated = [...prev, card];
+      setHasClothes(true);
+      return updated;
+    });
+  };
+
+  const addOutfit = (outfit: OutfitDoc) => {
+    setOutfits((prev) => [...prev, outfit]);
+  };
+
+  const removeOutfit = (id: string) => {
+    setOutfits((prev) => prev.filter((o) => o.id !== id));
+  };
+
+  const updateOutfitDate = (id: string, date: string | null) => {
+    setOutfits((prev) => prev.map((o) => o.id === id ? { ...o, Date: date } : o));
+  };
+
+  const removeCard = (id: string) => {
+    setCards((prev) => {
+      const updated = prev.filter((c) => c.id !== id);
+      setHasClothes(updated.length > 0);
+      return updated;
+    });
+  };
+
   return (
-    <ClosetContext.Provider value={{ cards, outfits, hasClothes }}>
+    <ClosetContext.Provider value={{ cards, outfits, hasClothes, removeCard, addCard, addOutfit, removeOutfit, updateOutfitDate }}>
       {children}
     </ClosetContext.Provider>
   );

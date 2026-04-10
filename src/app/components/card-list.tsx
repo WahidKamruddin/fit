@@ -4,6 +4,7 @@ import Clothing from "../classes/clothes";
 interface ClothingCard {
   clothing: Clothing;
   id: string;
+  imageId: string | null;
 }
 
 interface CardListProps {
@@ -13,9 +14,10 @@ interface CardListProps {
   edit: boolean;
   select: boolean;
   handleOuterWear?: (item: Clothing, id: string) => void;
+  onLongPress?: () => void;
 }
 
-const CardList = ({ userID, cards, hasClothes, edit, select, handleOuterWear }: CardListProps) => {
+const CardList = ({ userID, cards, hasClothes, edit, select, handleOuterWear, onLongPress }: CardListProps) => {
   return (
     <div className="w-7/8 h-full flex flex-wrap justify-center overflow-y-scroll">
       {hasClothes ? (
@@ -27,6 +29,7 @@ const CardList = ({ userID, cards, hasClothes, edit, select, handleOuterWear }: 
               edit={edit}
               select={select}
               handleOuterWear={handleOuterWear}
+              onLongPress={onLongPress}
             />
           </div>
         ))

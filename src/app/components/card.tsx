@@ -1,19 +1,37 @@
-import { FaMinusCircle, FaStar } from "react-icons/fa";
+import { FaStar } from "react-icons/fa";
 import { AiOutlineStar } from "react-icons/ai";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { supabase } from "../supabaseConfig/client";
+import { useCloset } from "../providers/closetContext";
 import Clothing from "../classes/clothes";
 
 interface CardProps {
   userID: string;
-  aClothing: { clothing: Clothing; id: string };
+  aClothing: { clothing: Clothing; id: string; imageId: string | null };
   edit: boolean;
   select: boolean;
   handleOuterWear?: (item: Clothing, id: string) => void;
+  onLongPress?: () => void;
 }
 
-const Card = ({ userID, aClothing, edit, select, handleOuterWear }: CardProps) => {
+const Card = ({ userID, aClothing, edit, select, handleOuterWear, onLongPress }: CardProps) => {
   const [starred, setStarred] = useState(aClothing.clothing.starred);
+  const [pressing, setPressing] = useState(false);
+  const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { removeCard } = useCloset();
+
+  const startPress = () => {
+    setPressing(true);
+    pressTimer.current = setTimeout(() => {
+      onLongPress?.();
+      setPressing(false);
+    }, 500);
+  };
+
+  const cancelPress = () => {
+    if (pressTimer.current) clearTimeout(pressTimer.current);
+    setPressing(false);
+  };
 
   const toggleFavorite = async () => {
     const newStarred = !starred;
@@ -22,51 +40,81 @@ const Card = ({ userID, aClothing, edit, select, handleOuterWear }: CardProps) =
   };
 
   const deleteClothing = async () => {
+    removeCard(aClothing.id);
+    if (aClothing.imageId) {
+      await supabase.storage.from('clothing-images').remove([`${userID}/${aClothing.imageId}`]);
+    }
     await supabase.from('clothes').delete().eq('id', aClothing.id);
   };
 
   return (
-    <div className="relative w-48 h-48 rounded-xl group">
-      <div className="relative bg-gray-100 border-2 rounded-xl select-none">
-        {/* delete */}
+    <div
+      className={`relative w-44 h-44 rounded-2xl group transition-transform duration-150 cursor-pointer
+        ${pressing ? 'scale-95' : 'scale-100'}
+        ${edit ? 'animate-wiggle' : ''}`}
+      onMouseDown={startPress}
+      onMouseUp={cancelPress}
+      onMouseLeave={cancelPress}
+      onTouchStart={startPress}
+      onTouchEnd={cancelPress}
+      onTouchMove={cancelPress}
+    >
+      {/* Card surface */}
+      <div className="relative w-full h-full bg-white border border-mocha-200/70 rounded-2xl shadow-sm shadow-mocha-200/40 overflow-hidden select-none">
+
+        {/* Delete button */}
         {edit && (
           <button
-            className="absolute top-0 right-0 m-1 text-center text-md text-red-600 bg-white rounded-xl drop-shadow-xl z-10"
+            className="absolute top-2 right-2 z-20 w-6 h-6 flex items-center justify-center rounded-full bg-red-500 text-white shadow-md transition-transform duration-150 hover:scale-110 active:scale-95 text-xs leading-none font-medium"
             onClick={deleteClothing}
+            aria-label="Delete"
           >
-            <FaMinusCircle />
+            ✕
           </button>
         )}
 
-        {/* favorite */}
+        {/* Favourite button */}
         <button
-          className="absolute top-2 left-2 text-xl text-yellow-500 cursor-pointer z-10"
+          className="absolute top-2 left-2 z-20 w-6 h-6 flex items-center justify-center rounded-full bg-white/80 backdrop-blur-sm border border-mocha-200/50 transition-all duration-200 hover:border-mocha-400"
           onClick={toggleFavorite}
+          aria-label="Favourite"
         >
-          {starred ? <FaStar className="text-amber-500" /> : <AiOutlineStar />}
+          {starred
+            ? <FaStar size={11} className="text-amber-400" />
+            : <AiOutlineStar size={11} className="text-mocha-300" />}
         </button>
 
-        {/* image */}
-        <img alt="clothing" src={aClothing.clothing.getImageUrl()} className="p-4 min-w-48 h-48 group-hover:blur-sm z-0" />
+        {/* Clothing image */}
+        <img
+          alt={aClothing.clothing.getName()}
+          src={aClothing.clothing.getImageUrl()}
+          className="w-full h-full object-contain p-4 transition-all duration-300 group-hover:scale-105 group-hover:opacity-40"
+        />
+
+        {/* Hover overlay */}
+        {select ? (
+          <button
+            onClick={() => handleOuterWear?.(aClothing.clothing, aClothing.id)}
+            className="absolute inset-0 z-10 flex flex-col justify-end p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+          >
+            <p className="font-cormorant text-base font-light text-mocha-500 leading-tight text-left">
+              {aClothing.clothing.getName()}
+            </p>
+            <p className="text-[9px] tracking-[0.3em] uppercase text-mocha-400 mt-0.5">
+              {aClothing.clothing.getType()}
+            </p>
+          </button>
+        ) : (
+          <div className="absolute inset-0 z-10 flex flex-col justify-end p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+            <p className="font-cormorant text-base font-light text-mocha-500 leading-tight">
+              {aClothing.clothing.getName()}
+            </p>
+            <p className="text-[9px] tracking-[0.3em] uppercase text-mocha-400 mt-0.5">
+              {aClothing.clothing.getType()}
+            </p>
+          </div>
+        )}
       </div>
-
-      {/* text hover */}
-      {select ? (
-        <button
-          onClick={() => handleOuterWear?.(aClothing.clothing, aClothing.id)}
-          className="absolute top-0 w-full h-full bg-transparent text-transparent group-hover:text-white flex justify-center items-center"
-        >
-          <div className="h-fit">
-            <h1 className="relative">{aClothing.clothing.getName()}</h1>
-          </div>
-        </button>
-      ) : (
-        <div className="absolute top-0 w-full h-full bg-transparent text-transparent group-hover:text-white flex justify-center items-center">
-          <div className="h-fit">
-            <h1 className="relative">{aClothing.clothing.getName()}</h1>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

@@ -59,19 +59,19 @@ const Card = ({ userID, aClothing, edit, select, handleOuterWear, onLongPress }:
       onTouchEnd={cancelPress}
       onTouchMove={cancelPress}
     >
+      {/* Delete button */}
+      {edit && (
+        <button
+          className="absolute -top-2 -right-2 z-20 w-6 h-6 flex items-center justify-center rounded-full bg-red-500 text-white shadow-md transition-transform duration-150 hover:scale-110 active:scale-95 text-xs leading-none font-medium"
+          onClick={deleteClothing}
+          aria-label="Delete"
+        >
+          ✕
+        </button>
+      )}
+
       {/* Card surface */}
       <div className="relative w-full h-full bg-white border border-mocha-200/70 rounded-2xl shadow-sm shadow-mocha-200/40 overflow-hidden select-none">
-
-        {/* Delete button */}
-        {edit && (
-          <button
-            className="absolute top-2 right-2 z-20 w-6 h-6 flex items-center justify-center rounded-full bg-red-500 text-white shadow-md transition-transform duration-150 hover:scale-110 active:scale-95 text-xs leading-none font-medium"
-            onClick={deleteClothing}
-            aria-label="Delete"
-          >
-            ✕
-          </button>
-        )}
 
         {/* Favourite button */}
         <button

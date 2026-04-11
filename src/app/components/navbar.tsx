@@ -41,11 +41,14 @@ export default function Navbar() {
                         </Link>
                     </li>
                     <li>
-                        <span className={`text-xs tracking-[0.3em] uppercase cursor-not-allowed ${
-                            scrolled ? 'text-mocha-200' : 'text-mocha-300/50'
-                        }`}>
-                            FAQ
-                        </span>
+                        <Link
+                            href="/pricing"
+                            className={`text-xs tracking-[0.3em] uppercase transition-colors duration-300 ${
+                                scrolled ? 'text-mocha-400 hover:text-mocha-500' : 'text-mocha-200 hover:text-mocha-100'
+                            }`}
+                        >
+                            Pricing
+                        </Link>
                     </li>
                     <li>
                         <Link

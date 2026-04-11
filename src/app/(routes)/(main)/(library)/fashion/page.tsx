@@ -67,7 +67,7 @@ const FashionPage = () => {
 
           <h1
             className="mt-3 font-cormorant font-light text-mocha-500 leading-[0.95] animate-fade-in-up"
-            style={{ fontSize: 'clamp(2.8rem, 5vw, 4.5rem)', animationDelay: '0.15s' }}
+            style={{ fontSize: 'clamp(2.8rem, 5vw, 9rem)', animationDelay: '0.15s' }}
           >
             Dress with<br />
             <span className="italic text-mocha-400">Intention.</span>
@@ -99,7 +99,7 @@ const FashionPage = () => {
               <div className="flex-1">
                 <h2
                   className="font-cormorant font-light text-mocha-500 leading-tight mb-6"
-                  style={{ fontSize: 'clamp(1.6rem, 2.5vw, 2.2rem)' }}
+                  style={{ fontSize: 'clamp(1.6rem, 2.5vw, 4rem)' }}
                 >
                   {section.title}
                 </h2>

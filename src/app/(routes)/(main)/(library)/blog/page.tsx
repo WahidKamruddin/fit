@@ -18,7 +18,7 @@ const Blogs = () => {
 
           <h1
             className="mt-3 font-cormorant font-light text-mocha-500 leading-[0.95] animate-fade-in-up"
-            style={{ fontSize: 'clamp(2.8rem, 5vw, 4.5rem)', animationDelay: '0.15s' }}
+            style={{ fontSize: 'clamp(2.8rem, 5vw, 9rem)', animationDelay: '0.15s' }}
           >
             Style<br />
             <span className="italic text-mocha-400">Journal.</span>

@@ -16,6 +16,8 @@ interface OutfitDoc {
   OuterWear: string;
   Top: string;
   Bottom: string;
+  Shoes: string | null;
+  Accessories: string[];
   Date: string | null;
 }
 
@@ -65,7 +67,15 @@ export function ClosetProvider({ children }: { children: React.ReactNode }) {
 
       if (clothesData) {
         const clothesArr: ClothingCard[] = clothesData.map((row) => {
-          const clothing = new Clothing(row.name, row.color, row.type, row.image, row.material, row.style);
+          // Handle legacy string colors and new [name, hex] tuples
+          const color: [string, string] = Array.isArray(row.color)
+            ? row.color
+            : [String(row.color || 'Unknown'), '#808080'];
+          const clothing = new Clothing(
+            row.name, color, row.type, row.image,
+            row.material, row.style,
+            row.comfort, row.warmth, row.weather, row.vibe, row.size,
+          );
           clothing.starred = row.starred;
           return { clothing, id: row.id, imageId: row.image_id ?? null };
         });
@@ -84,6 +94,8 @@ export function ClosetProvider({ children }: { children: React.ReactNode }) {
           OuterWear: row.outer_wear,
           Top: row.top,
           Bottom: row.bottom,
+          Shoes: row.shoes ?? null,
+          Accessories: row.accessories ?? [],
           Date: row.date,
         }));
         setOutfits(outfitArr);

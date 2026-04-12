@@ -47,6 +47,8 @@ export default function Outfit() {
         OuterWear: data.outer_wear,
         Top: data.top,
         Bottom: data.bottom,
+        Shoes: data.shoes ?? null,
+        Accessories: data.accessories ?? [],
         Date: data.date,
       });
     }
@@ -85,10 +87,10 @@ export default function Outfit() {
   const firstName = (user.user_metadata?.full_name ?? user.user_metadata?.name)?.split(' ')[0] ?? 'Your';
 
   return (
-    <div className="min-h-screen pt-16 bg-off-white-100">
-      <div className="px-4 sm:px-8 lg:px-20">
+    <div className="h-screen flex flex-col overflow-hidden pt-16 bg-off-white-100">
 
-        {/* ── Page header ─────────────────────────────────────── */}
+      {/* ── Page header ─────────────────────────────────────── */}
+      <div className="flex-shrink-0 px-4 sm:px-8 lg:px-20">
         <div className="pt-8">
           {/* Overline */}
           <div className="flex items-center gap-4 animate-fade-in" style={{ animationDelay: '0.05s' }}>
@@ -134,10 +136,12 @@ export default function Outfit() {
           {/* Divider */}
           <div className="mt-6 h-px bg-mocha-200 animate-fade-in" style={{ animationDelay: '0.3s' }} />
         </div>
+      </div>
 
-        {/* ── Outfit grid / empty state ────────────────────────── */}
+      {/* ── Outfit grid / empty state ────────────────────────── */}
+      <div className="flex-1 overflow-y-auto px-4 sm:px-8 lg:px-20">
         {outfits.length > 0 ? (
-          <div className="mt-8 pb-16 flex flex-wrap justify-center gap-6 animate-fade-in" style={{ animationDelay: '0.35s' }}>
+          <div className="mt-8 pb-8 flex flex-wrap justify-center gap-6 animate-fade-in" style={{ animationDelay: '0.35s' }}>
             {memoizedOutfits}
           </div>
         ) : (

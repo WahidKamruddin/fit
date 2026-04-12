@@ -11,6 +11,8 @@ import { v4 } from "uuid";
 import { useCloset } from "@/src/app/providers/closetContext";
 import { Pencil } from "lucide-react";
 import PageSkeleton from "@/src/app/components/page-skeleton";
+import { analyzeClothing } from "@/src/app/api/analyze-clothing";
+import type { ClothingAnalysis } from "@/src/app/types/clothing";
 
 
 export default function Closet() {
@@ -21,11 +23,8 @@ export default function Closet() {
   const [outerWear, setOuterWear] = useState(false);
   const [tops, setTops] = useState(false);
   const [bottoms, setBottoms] = useState(false);
-
-  // Clothing states
-  const [clothingName, setClothingName] = useState('');
-  const [clothingColor, setClothingColor] = useState('');
-  const [clothingType, setClothingType] = useState('');
+  const [shoes, setShoes] = useState(false);
+  const [accessories, setAccessories] = useState(false);
 
   // Fetch data states
   const { cards, hasClothes, addCard } = useCloset();
@@ -79,9 +78,7 @@ export default function Closet() {
       const processedFile = await handleBackgroundRemoval();
 
       if (processedFile && user) {
-        const someClothing = new Clothing(clothingName, clothingColor, clothingType);
-        setLoadingStep('Uploading image…');
-        await addItem(someClothing, processedFile);
+        await addItem(processedFile);
       }
     } finally {
       setLoading(false);
@@ -89,61 +86,90 @@ export default function Closet() {
     }
   };
 
-  const addItem = async (someClothing: Clothing, processedFile: File) => {
+  const addItem = async (processedFile: File) => {
     const imageID = v4();
     const path = `${user!.id}/${imageID}`;
 
-    await supabase.storage.from('clothing-images').upload(path, processedFile);
+    // Convert file to base64 for AI scan (before upload to avoid redundant fetch)
+    const base64 = await new Promise<string>((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve((reader.result as string).split(',')[1]);
+      reader.readAsDataURL(processedFile);
+    });
+
+    // Upload to storage and AI scan in parallel
+    setLoadingStep('Uploading & analyzing…');
+    const [, analysis] = await Promise.all([
+      supabase.storage.from('clothing-images').upload(path, processedFile),
+      analyzeClothing(base64, processedFile.type || 'image/png'),
+    ]);
+
     const { data: { publicUrl } } = supabase.storage.from('clothing-images').getPublicUrl(path);
-    await addClothing(someClothing, publicUrl, imageID);
+    await addClothing(publicUrl, imageID, analysis);
   };
 
-  const addClothing = async (someClothing: Clothing, imgUrl: string, imageID: string) => {
+  const addClothing = async (imgUrl: string, imageID: string, analysis: ClothingAnalysis) => {
     const { data } = await supabase.from('clothes').insert({
       user_id: user!.id,
-      name: someClothing.getName(),
-      color: someClothing.getColor(),
-      type: someClothing.getType(),
+      name: analysis.name,
+      color: analysis.color,
+      type: analysis.type,
       image: imgUrl,
       image_id: imageID,
-      material: someClothing.getMaterial(),
-      style: someClothing.getStyle(),
+      material: analysis.metadata.material,
+      style: analysis.metadata.style,
+      comfort: analysis.metadata.comfort,
+      warmth: analysis.metadata.warmth,
+      weather: analysis.metadata.weather,
+      vibe: analysis.metadata.vibe,
+      size: analysis.metadata.size,
     }).select().single();
 
     if (data) {
-      const clothing = new Clothing(data.name, data.color, data.type, data.image, data.material, data.style);
+      const clothing = new Clothing(
+        data.name, data.color, data.type, data.image,
+        data.material, data.style,
+        data.comfort, data.warmth, data.weather, data.vibe, data.size,
+      );
       clothing.starred = data.starred;
       addCard({ clothing, id: data.id, imageId: data.image_id });
     }
   };
 
-  const filterAll = () => { setAll(true); setOuterWear(false); setTops(false); setBottoms(false); };
-  const filterOuterWear = () => { setAll(false); setOuterWear(true); setTops(false); setBottoms(false); };
-  const filterTops = () => { setAll(false); setOuterWear(false); setTops(true); setBottoms(false); };
-  const filterBottoms = () => { setAll(false); setOuterWear(false); setTops(false); setBottoms(true); };
+  const clearFilters = () => { setAll(false); setOuterWear(false); setTops(false); setBottoms(false); setShoes(false); setAccessories(false); };
+  const filterAll = () => { clearFilters(); setAll(true); };
+  const filterOuterWear = () => { clearFilters(); setOuterWear(true); };
+  const filterTops = () => { clearFilters(); setTops(true); };
+  const filterBottoms = () => { clearFilters(); setBottoms(true); };
+  const filterShoes = () => { clearFilters(); setShoes(true); };
+  const filterAccessories = () => { clearFilters(); setAccessories(true); };
 
   if (!user) return <PageSkeleton />;
 
   const firstName = (user.user_metadata?.full_name ?? user.user_metadata?.name)?.split(' ')[0] ?? 'Your';
 
   const filters = [
-    { label: 'All',       active: all,       onClick: filterAll       },
-    { label: 'Outerwear', active: outerWear,  onClick: filterOuterWear },
-    { label: 'Tops',      active: tops,       onClick: filterTops      },
-    { label: 'Bottoms',   active: bottoms,    onClick: filterBottoms   },
+    { label: 'All',         active: all,          onClick: filterAll         },
+    { label: 'Outerwear',   active: outerWear,    onClick: filterOuterWear   },
+    { label: 'Tops',        active: tops,          onClick: filterTops        },
+    { label: 'Bottoms',     active: bottoms,       onClick: filterBottoms     },
+    { label: 'Shoes',       active: shoes,         onClick: filterShoes       },
+    { label: 'Accessories', active: accessories,   onClick: filterAccessories },
   ];
 
-  const activeCards = all        ? cards
-    : outerWear ? cards.filter(c => c.clothing.getType() === 'Outerwear')
-    : tops      ? cards.filter(c => c.clothing.getType() === 'Top')
-    : bottoms   ? cards.filter(c => c.clothing.getType() === 'Bottom')
+  const activeCards = all          ? cards
+    : outerWear   ? cards.filter(c => c.clothing.getType() === 'Outerwear')
+    : tops        ? cards.filter(c => c.clothing.getType() === 'Top')
+    : bottoms     ? cards.filter(c => c.clothing.getType() === 'Bottom')
+    : shoes       ? cards.filter(c => c.clothing.getType() === 'Shoes')
+    : accessories ? cards.filter(c => c.clothing.getType() === 'Accessory')
     : cards;
 
   return (
-    <div className="min-h-screen bg-off-white-100">
+    <div className="h-screen flex flex-col overflow-hidden bg-off-white-100">
 
       {/* ── Page header ──────────────────────────────────────── */}
-      <div className="pt-16 px-4 sm:px-8 lg:px-20">
+      <div className="flex-shrink-0 pt-16 px-4 sm:px-8 lg:px-20">
 
         {/* Overline */}
         <div className="pt-8 flex items-center gap-4 animate-fade-in" style={{ animationDelay: '0.05s' }}>
@@ -207,7 +233,7 @@ export default function Closet() {
       </div>
 
       {/* ── Clothing grid ─────────────────────────────────────── */}
-      <div className="mt-8 px-4 sm:px-8 lg:px-20 pb-16 animate-fade-in" style={{ animationDelay: '0.45s' }}>
+      <div className="flex-1 overflow-y-auto mt-8 px-4 sm:px-8 lg:px-20 pb-8 animate-fade-in" style={{ animationDelay: '0.45s' }}>
         {hasClothes ? (
           <CardList
             userID={user.id}
@@ -262,51 +288,6 @@ export default function Closet() {
             </h2>
 
             <form onSubmit={createClothing} className="space-y-6">
-
-              {/* Name */}
-              <div>
-                <label className="block text-[10px] tracking-[0.4em] uppercase text-mocha-400 mb-2">
-                  Name
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Black wool coat"
-                  onChange={(e) => setClothingName(e.target.value)}
-                  className="w-full bg-transparent border-b border-mocha-200 py-2.5 text-mocha-500 text-sm placeholder:text-mocha-300/50 focus:outline-none focus:border-mocha-400 transition-colors duration-200"
-                />
-              </div>
-
-              {/* Color */}
-              <div>
-                <label className="block text-[10px] tracking-[0.4em] uppercase text-mocha-400 mb-2">
-                  Color
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Charcoal"
-                  onChange={(e) => setClothingColor(e.target.value)}
-                  className="w-full bg-transparent border-b border-mocha-200 py-2.5 text-mocha-500 text-sm placeholder:text-mocha-300/50 focus:outline-none focus:border-mocha-400 transition-colors duration-200"
-                />
-              </div>
-
-              {/* Type */}
-              <div>
-                <label className="block text-[10px] tracking-[0.4em] uppercase text-mocha-400 mb-2">
-                  Type
-                </label>
-                <select
-                  required
-                  onChange={(e) => setClothingType(e.target.value)}
-                  className="w-full bg-transparent border-b border-mocha-200 py-2.5 text-mocha-500 text-sm focus:outline-none focus:border-mocha-400 transition-colors duration-200 appearance-none cursor-pointer"
-                >
-                  <option value="">Select a type</option>
-                  <option>Outerwear</option>
-                  <option>Top</option>
-                  <option>Bottom</option>
-                </select>
-              </div>
 
               {/* Photo upload */}
               <div>

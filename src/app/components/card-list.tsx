@@ -19,7 +19,7 @@ interface CardListProps {
 
 const CardList = ({ userID, cards, hasClothes, edit, select, handleOuterWear, onLongPress }: CardListProps) => {
   return (
-    <div className="w-7/8 h-full flex flex-wrap justify-center overflow-y-scroll">
+    <div className="w-7/8 flex flex-wrap justify-center">
       {hasClothes ? (
         cards.map((something) => (
           <div className="mt-8 mx-10 min-w-max" key={something.id}>

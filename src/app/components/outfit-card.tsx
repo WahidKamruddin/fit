@@ -64,7 +64,7 @@ const OutfitCard = ({ userID, outfit, clothes, canEdit, onClearDate, onLongPress
 
   return (
     <div
-      className={`relative w-44 h-52 rounded-2xl bg-white border border-mocha-200/70 shadow-sm shadow-mocha-200/40 overflow-visible cursor-pointer transition-transform duration-150
+      className={`relative w-72 h-36 rounded-2xl bg-white border border-mocha-200/70 shadow-sm shadow-mocha-200/40 overflow-visible cursor-pointer transition-transform duration-150
         ${pressing ? 'scale-95' : 'scale-100'}
         ${canEdit ? 'animate-wiggle' : ''}`}
       onMouseDown={startPress}
@@ -96,32 +96,33 @@ const OutfitCard = ({ userID, outfit, clothes, canEdit, onClearDate, onLongPress
         </button>
       )}
 
-      {/* Layered clothing images */}
-      <div className="relative w-full h-full flex items-center justify-center">
-        {oWImg && (
-          <img
-            src={oWImg}
-            alt="outerwear"
-            className="absolute w-28 h-28 object-contain"
-            style={{ top: '8px', zIndex: 1 }}
-          />
-        )}
-        {topImg && (
-          <img
-            src={topImg}
-            alt="top"
-            className="absolute w-28 h-28 object-contain"
-            style={{ top: '30px', zIndex: 2 }}
-          />
-        )}
-        {botImg && (
-          <img
-            src={botImg}
-            alt="bottom"
-            className="absolute w-28 h-28 object-contain"
-            style={{ top: '52px', zIndex: 3 }}
-          />
-        )}
+      {/* Side-by-side clothing images */}
+      <div className="flex flex-row w-full h-full overflow-hidden rounded-2xl divide-x divide-mocha-200/40">
+
+        {/* Outerwear slot */}
+        <div className="flex-1 flex items-center justify-center p-1">
+          {oWImg
+            ? <img src={oWImg} alt="outerwear" className="w-24 h-24 object-contain" />
+            : <div className="w-3 h-3 rounded-full border border-mocha-200/60" />
+          }
+        </div>
+
+        {/* Top slot */}
+        <div className="flex-1 flex items-center justify-center p-1">
+          {topImg
+            ? <img src={topImg} alt="top" className="w-24 h-24 object-contain" />
+            : <div className="w-3 h-3 rounded-full border border-mocha-200/60" />
+          }
+        </div>
+
+        {/* Bottom slot */}
+        <div className="flex-1 flex items-center justify-center p-1">
+          {botImg
+            ? <img src={botImg} alt="bottom" className="w-24 h-24 object-contain" />
+            : <div className="w-3 h-3 rounded-full border border-mocha-200/60" />
+          }
+        </div>
+
       </div>
     </div>
   );

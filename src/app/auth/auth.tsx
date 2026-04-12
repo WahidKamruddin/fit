@@ -16,7 +16,6 @@ export async function googleSignIn() {
 export async function logOut() {
   await supabase.auth.signOut();
 }
-
 // User hook — returns current Supabase User or null
 export function useUser() {
   const [user, setUser] = useState<User | null>(null);

@@ -46,6 +46,7 @@ export function NavUser({
     await fetch('/auth/signout');
   }
 
+  
    
   return (
     <SidebarMenu>

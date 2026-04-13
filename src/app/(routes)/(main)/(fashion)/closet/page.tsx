@@ -39,33 +39,40 @@ export default function Closet() {
 
   const fileTypes = ["JPG", "JPEG", "PNG", "GIF"];
 
+  const BG_REMOVAL_TIMEOUT_MS = 30_000;
+
   // Function to handle background removal
-  const handleBackgroundRemoval = async (): Promise<File | null> => {
-    if (!file) return null;
+  const handleBackgroundRemoval = async (): Promise<File> => {
+    if (!file) throw new Error('No file selected');
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), BG_REMOVAL_TIMEOUT_MS);
 
     const formData = new FormData();
     formData.append("file", file);
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/remove-background`, {
+      const response = await fetch('/api/remove-background', {
         method: "POST",
-        headers: {
-          "X-Api-Key": process.env.NEXT_PUBLIC_BG_REMOVER_API_KEY!,
-        },
         body: formData,
+        signal: controller.signal,
       });
 
-      if (response.ok) {
-        const blob = await response.blob();
-        const processedImageFile = new File([blob], "processed-image.png", { type: "image/png" });
-        return processedImageFile;
-      } else {
-        throw new Error("Failed to remove background");
+      if (!response.ok) {
+        const text = await response.text().catch(() => '');
+        throw new Error(`Background removal failed (${response.status}${text ? `: ${text}` : ''})`);
       }
+
+      const blob = await response.blob();
+      return new File([blob], "processed-image.png", { type: "image/png" });
     } catch (error) {
-      console.error("Error removing background:", error);
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error('Background removal timed out. Please try again.');
+      }
+      throw error;
+    } finally {
+      clearTimeout(timeout);
     }
-    return null;
   };
 
   const createClothing = async (e: React.FormEvent) => {
@@ -76,10 +83,11 @@ export default function Closet() {
     try {
       setLoadingStep('Removing background…');
       const processedFile = await handleBackgroundRemoval();
-
-      if (processedFile && user) {
-        await addItem(processedFile);
-      }
+      if (user) await addItem(processedFile);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Something went wrong.';
+      setLoadingStep(message);
+      await new Promise(res => setTimeout(res, 3000));
     } finally {
       setLoading(false);
       setLoadingStep('');

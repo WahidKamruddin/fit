@@ -194,7 +194,7 @@ export default function Outfit() {
       {/* Add outfit modal */}
       {add && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex justify-center items-center p-4">
-          <div className="relative w-full max-w-2xl bg-off-white-100 rounded-3xl p-6 sm:p-8 shadow-2xl flex flex-col gap-6">
+          <div className="relative w-full max-w-2xl bg-off-white-100 rounded-3xl p-6 sm:p-8 shadow-2xl flex flex-col gap-5 max-h-[calc(100svh-2rem)] overflow-y-auto">
 
             {/* Close */}
             <button onClick={exit} className="absolute top-5 right-5 w-8 h-8 flex items-center justify-center rounded-full border border-mocha-200 text-mocha-400 hover:border-mocha-400 hover:text-mocha-500 transition-all duration-200" aria-label="Close">
@@ -221,7 +221,7 @@ export default function Outfit() {
                 ] as { label: string; item: [Clothing, string] | null }[]).map(({ label, item }) => (
                   <div
                     key={label}
-                    className={`rounded-2xl aspect-square flex flex-col justify-center items-center overflow-hidden transition-all duration-200 ${
+                    className={`rounded-2xl h-28 flex flex-col justify-center items-center overflow-hidden transition-all duration-200 ${
                       item ? 'border border-mocha-400 bg-white' : 'border border-dashed border-mocha-300'
                     }`}
                   >
@@ -243,7 +243,7 @@ export default function Outfit() {
               </div>
               <div className="grid grid-cols-3 gap-3">
                 {/* Outerwear */}
-                <div className={`border border-dashed rounded-2xl aspect-square flex flex-col justify-center items-center overflow-hidden transition-all duration-200 ${outerWear ? 'border-mocha-300 bg-white' : 'border-mocha-200'}`}>
+                <div className={`border border-dashed rounded-2xl h-20 flex flex-col justify-center items-center overflow-hidden transition-all duration-200 ${outerWear ? 'border-mocha-300 bg-white' : 'border-mocha-200'}`}>
                   {outerWear ? (
                     <img alt="Outerwear" src={outerWear[0].getImageUrl()} className="w-full h-full object-contain p-2" />
                   ) : (
@@ -251,7 +251,7 @@ export default function Outfit() {
                   )}
                 </div>
                 {/* Shoes */}
-                <div className={`border border-dashed rounded-2xl aspect-square flex flex-col justify-center items-center overflow-hidden transition-all duration-200 ${shoes ? 'border-mocha-300 bg-white' : 'border-mocha-200'}`}>
+                <div className={`border border-dashed rounded-2xl h-20 flex flex-col justify-center items-center overflow-hidden transition-all duration-200 ${shoes ? 'border-mocha-300 bg-white' : 'border-mocha-200'}`}>
                   {shoes ? (
                     <img alt="Shoes" src={shoes[0].getImageUrl()} className="w-full h-full object-contain p-2" />
                   ) : (
@@ -259,7 +259,7 @@ export default function Outfit() {
                   )}
                 </div>
                 {/* Accessories */}
-                <div className={`border border-dashed rounded-2xl aspect-square flex flex-col justify-center items-center overflow-hidden transition-all duration-200 p-2 ${accessories.length > 0 ? 'border-mocha-300 bg-white' : 'border-mocha-200'}`}>
+                <div className={`border border-dashed rounded-2xl h-20 flex flex-col justify-center items-center overflow-hidden transition-all duration-200 p-2 ${accessories.length > 0 ? 'border-mocha-300 bg-white' : 'border-mocha-200'}`}>
                   {accessories.length > 0 ? (
                     <div className="flex flex-wrap gap-0.5 justify-center items-center w-full h-full">
                       {accessories.slice(0, 4).map(([item, id]) => (

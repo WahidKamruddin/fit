@@ -14,19 +14,19 @@ const faqs = [
   },
   {
     q: "How does the AI outfit generator work?",
-    a: "Once your closet is populated, our AI analyses your pieces — colours, styles, and types — and suggests cohesive outfits tailored to occasion, season, or mood.",
+    a: "Once your closet is populated, FIT analyses your pieces — their colours, styles, vibes, and weather suitability — and suggests cohesive outfits tailored to your mood and conditions. It's already live and ready to use.",
   },
   {
     q: "What clothing types does FIT support?",
-    a: "Currently FIT supports Outerwear, Tops, and Bottoms. Shoes, accessories, and full looks are planned for upcoming releases.",
+    a: "FIT supports Outerwear, Tops, Bottoms, Shoes, and Accessories — everything you need to build a complete look.",
   },
   {
     q: "Is my wardrobe data private?",
     a: "Yes. Your wardrobe is tied to your account and never shared. We don't sell data or use your clothing photos for advertising.",
   },
   {
-    q: "When does the full version launch?",
-    a: "We're targeting a full public launch in late 2025. Sign up for early access to be the first to know when we're ready.",
+    q: "When is the Shop launching?",
+    a: "The Shop is coming May 2026. It'll let you browse and buy pieces that complete your existing wardrobe — curated to what you already own.",
   },
 ];
 

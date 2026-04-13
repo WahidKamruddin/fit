@@ -49,6 +49,7 @@ export default function Shop() {
                                     width={280}
                                     height={280}
                                     className="w-full max-w-[200px] group-hover:scale-105 transition-transform duration-500"
+                                    draggable={false}
                                 />
                             </div>
                             <div className="px-6 pb-7 border-t border-mocha-200 pt-5">

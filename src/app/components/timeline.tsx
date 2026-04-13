@@ -10,26 +10,30 @@ const milestones = [
     {
         Icon: BiCloset,
         label: "Digital Closet",
-        date: "Apr 2025 — Beta Launch",
+        date: "Apr 2025 — Launched",
         done: true,
+        inProgress: false,
     },
     {
         Icon: PiTShirt,
         label: "AI Outfit Generator",
-        date: "Jun 2025 — Launch",
+        date: "Apr 2026 — In Progress",
         done: false,
+        inProgress: true,
     },
     {
         Icon: AiOutlineShopping,
         label: "Shop",
-        date: "Sept 2025",
+        date: "May 2026",
         done: false,
+        inProgress: false,
     },
     {
         Icon: BsBell,
         label: "More to come...",
         date: "TBD",
         done: false,
+        inProgress: false,
     },
 ];
 
@@ -69,14 +73,21 @@ export default function Timeline() {
                             {milestones.map((m, i) => (
                                 <div key={i} className={`flex gap-8 items-start reveal ${inView ? 'is-visible' : ''}`} style={{ transitionDelay: `${0.2 + i * 0.1}s` }}>
                                     {/* Icon dot — 48 px wide, centered on the line at left:6 (24px) */}
-                                    <div
-                                        className={`relative z-10 w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 border-2 transition-all duration-300 ${
-                                            m.done
-                                                ? 'bg-mocha-500 border-mocha-500 text-mocha-100'
-                                                : 'bg-off-white-100 border-mocha-400 text-mocha-400'
-                                        }`}
-                                    >
-                                        <m.Icon size={18} />
+                                    <div className="relative z-10 w-12 h-12 flex-shrink-0 flex items-center justify-center">
+                                        {m.inProgress && (
+                                            <span className="absolute inset-0 rounded-full bg-mocha-500/50 animate-slow-ping" />
+                                        )}
+                                        <div
+                                            className={`relative w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${
+                                                m.done
+                                                    ? 'bg-mocha-500 border-mocha-500 text-mocha-100'
+                                                    : m.inProgress
+                                                    ? 'bg-mocha-500 border-mocha-500 text-mocha-100'
+                                                    : 'bg-off-white-100 border-mocha-400 text-mocha-400'
+                                            }`}
+                                        >
+                                            <m.Icon size={18} />
+                                        </div>
                                     </div>
 
                                     {/* Label */}

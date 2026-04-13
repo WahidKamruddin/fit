@@ -190,6 +190,16 @@ body {
     transform-origin: center;
 }
 
+@keyframes slowPing {
+    0%   { transform: scale(1);   opacity: 0.5; }
+    70%  { transform: scale(2);   opacity: 0;   }
+    100% { transform: scale(2);   opacity: 0;   }
+}
+
+.animate-slow-ping {
+    animation: slowPing 2.4s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
 /* ── Scroll-reveal ──────────────────────────────────────────────── */
 .reveal {
     opacity: 0;

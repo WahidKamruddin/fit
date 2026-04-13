@@ -23,10 +23,11 @@ export default function Wardrobe() {
                     <div className={`relative reveal-left ${inView ? 'is-visible' : ''}`} style={{ transitionDelay: '0.1s' }}>
                         <Image
                             alt="virtual closet"
-                            src="./img/virtualCloset.svg"
+                            src="/closet.png"
                             className="rounded-2xl w-full drop-shadow-xl"
                             width={700}
                             height={600}
+                            draggable={false}
                         />
                         {/* Decorative offset blocks */}
                         <div className="absolute -bottom-4 -right-4 w-24 h-24 border border-mocha-200 rounded-2xl -z-10" />

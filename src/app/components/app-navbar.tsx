@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useState, useRef } from "react"
 import { useUser, logOut } from "../auth/auth"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
 import { Settings, LogOut, Menu, X } from "lucide-react"
 
@@ -55,6 +55,9 @@ export function AppNavbar() {
   const closeGroupMenu = ()              => { groupTimer.current = setTimeout(() => setOpenGroup(null), 120) }
   const openUserMenu   = ()              => { if (userTimer.current)  clearTimeout(userTimer.current);  setUserMenuOpen(true) }
   const closeUserMenu  = ()              => { userTimer.current  = setTimeout(() => setUserMenuOpen(false), 120) }
+
+  const router = useRouter()
+  const handleSignOut = async () => { await logOut(); router.push('/login') }
 
   const userName  = user?.user_metadata?.full_name ?? user?.user_metadata?.name ?? "User"
   const avatar    = user?.user_metadata?.avatar_url ?? ""
@@ -165,7 +168,7 @@ export function AppNavbar() {
                     Settings
                   </Link>
                   <button
-                    onClick={() => logOut()}
+                    onClick={handleSignOut}
                     className="flex items-center gap-3 w-full px-5 py-2 text-[10px] tracking-[0.35em] uppercase text-mocha-400 hover:text-mocha-500 hover:bg-mocha-100/50 transition-colors text-left rounded-xl mx-1"
                   >
                     <LogOut size={11} />
@@ -229,7 +232,7 @@ export function AppNavbar() {
             {/* Sign out */}
             <div className="px-8 pt-6 border-t border-mocha-100 mt-5">
               <button
-                onClick={() => logOut()}
+                onClick={handleSignOut}
                 className="flex items-center gap-3 text-[10px] tracking-[0.4em] uppercase text-mocha-400 hover:text-mocha-500 transition-colors"
               >
                 <LogOut size={12} />

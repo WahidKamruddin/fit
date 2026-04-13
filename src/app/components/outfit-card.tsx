@@ -27,7 +27,7 @@ interface OutfitCardProps {
   onLongPress?: () => void;
 }
 
-const SLOT_W = 80; // px per slot
+const SLOT_W = 144; // px per slot — matches clothing card image area (w-44 = 176px minus p-4 padding)
 
 const OutfitCard = ({ userID, outfit, clothes, canEdit, onClearDate, onLongPress }: OutfitCardProps) => {
   const { OuterWear, Top, Bottom, Shoes, Accessories } = outfit;
@@ -94,7 +94,7 @@ const OutfitCard = ({ userID, outfit, clothes, canEdit, onClearDate, onLongPress
 
   return (
     <div
-      className={`relative h-36 rounded-2xl bg-white border border-mocha-200/70 shadow-sm shadow-mocha-200/40 overflow-visible cursor-pointer transition-transform duration-150
+      className={`relative h-44 rounded-2xl bg-white border border-mocha-200/70 shadow-sm shadow-mocha-200/40 overflow-visible cursor-pointer transition-transform duration-150
         ${pressing ? 'scale-95' : 'scale-100'}
         ${canEdit ? 'animate-wiggle' : ''}`}
       style={{ width: `${cardWidth}px` }}
@@ -130,9 +130,9 @@ const OutfitCard = ({ userID, outfit, clothes, canEdit, onClearDate, onLongPress
       {/* Side-by-side clothing images */}
       <div className="flex flex-row w-full h-full overflow-hidden rounded-2xl divide-x divide-mocha-200/40">
         {slots.map((slot, i) => (
-          <div key={i} className="flex-shrink-0 flex items-center justify-center p-1" style={{ width: `${SLOT_W}px` }}>
+          <div key={i} className="flex-shrink-0 flex items-center justify-center p-3" style={{ width: `${SLOT_W}px` }}>
             {slot.img
-              ? <img src={slot.img} alt={slot.alt} className="w-16 h-16 object-contain" />
+              ? <img src={slot.img} alt={slot.alt} className="w-full h-full object-contain" />
               : <div className="w-3 h-3 rounded-full border border-mocha-200/60" />
             }
           </div>

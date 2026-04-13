@@ -1,8 +1,7 @@
 const links = [
-    { label: "Wahid Kamruddin", href: "https://www.linkedin.com/in/wahid-kamruddin-191248209/" },
+    { label: "Wahid Kamruddin", href: "https://www.linkedin.com/in/wahid-kamruddin/" },
     { label: "Contact",         href: "mailto:wahidkamruddin101@gmail.com" },
     { label: "F.I.T Beta",      href: "https://forms.gle/fedR43dq635K6jdH7" },
-    { label: "Progress",        href: "https://docs.google.com/document/d/1iEki30Gr1vSSSbV5BJRMYGX38cdVK8Xo2HJ9DtMDF2M/edit?usp=sharing" },
 ];
 
 export default function Footer() {

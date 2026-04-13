@@ -54,7 +54,7 @@ export default function Contact() {
                             <AiFillLinkedin size={18} />
                         </a>
                         <a
-                            href="https://wahidkamruddin.netlify.app/"
+                            href="https://wahidkamruddin.vercel.app/"
                             target="_blank"
                             rel="noreferrer"
                             className="w-11 h-11 rounded-full border border-mocha-400 flex items-center justify-center text-mocha-300 hover:border-mocha-100 hover:text-mocha-100 hover:scale-110 transition-all duration-300"

@@ -289,13 +289,13 @@ export default function Calendar() {
   );
 }
 
+// Indexed by getDay() (0 = Sun … 6 = Sat). Monday-first grid: Sun lives in col 7.
 const colStartClasses = [
-  'col-start-0',
-  'col-start-1',
-  'col-start-2',
-  'col-start-3',
-  'col-start-4',
-  'col-start-5',
-  'col-start-6',
-  'col-start-7',
+  'col-start-7', // Sunday
+  'col-start-1', // Monday
+  'col-start-2', // Tuesday
+  'col-start-3', // Wednesday
+  'col-start-4', // Thursday
+  'col-start-5', // Friday
+  'col-start-6', // Saturday
 ];

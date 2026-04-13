@@ -6,10 +6,10 @@ const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: {
-    default: 'FIT. — Your AI Wardrobe',
-    template: '%s | FIT.',
+    default: 'FIT — Your AI Wardrobe',
+    template: '%s | FIT',
   },
-  description: 'Curate, organise and style your wardrobe with AI. Build outfits, plan your week, and dress for every version of you.',
+  description: 'Curate, organize and style your wardrobe with AI. Build outfits, plan your week, and dress for every version of you.',
   openGraph: {
     title: 'FIT. — Your AI Wardrobe',
     description: 'Curate, organise and style your wardrobe with AI. Build outfits, plan your week, and dress for every version of you.',
@@ -24,7 +24,9 @@ export const metadata: Metadata = {
     description: 'Curate, organise and style your wardrobe with AI. Build outfits, plan your week, and dress for every version of you.',
   },
   icons: {
-    icon: '/icon',
+    icon: [
+      { url: '/icon.svg', type: 'image/svg+xml' },
+    ],
   },
 }
 

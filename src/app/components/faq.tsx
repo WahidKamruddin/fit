@@ -14,20 +14,17 @@ const faqs = [
   },
   {
     q: "How does the AI outfit generator work?",
-    a: "Once your closet is populated, FIT analyses your pieces — their colours, styles, vibes, and weather suitability — and suggests cohesive outfits tailored to your mood and conditions. It's already live and ready to use.",
+    a: "Once your closet is populated, FIT analyzes your pieces — their colours, styles, vibes, and weather suitability — and suggests cohesive outfits tailored to your mood and conditions. Try it out now!",
   },
   {
     q: "What clothing types does FIT support?",
-    a: "FIT supports Outerwear, Tops, Bottoms, Shoes, and Accessories — everything you need to build a complete look.",
+    a: "FIT supports currently supports outerwear, tops, bottoms, shoes, and accessories — everything you need to build a complete look.",
   },
   {
     q: "Is my wardrobe data private?",
     a: "Yes. Your wardrobe is tied to your account and never shared. We don't sell data or use your clothing photos for advertising.",
   },
-  {
-    q: "When is the Shop launching?",
-    a: "The Shop is coming May 2026. It'll let you browse and buy pieces that complete your existing wardrobe — curated to what you already own.",
-  },
+ 
 ];
 
 export default function Faq() {

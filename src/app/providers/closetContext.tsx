@@ -13,7 +13,7 @@ interface ClothingCard {
 
 interface OutfitDoc {
   id: string;
-  OuterWear: string;
+  OuterWear: string | null;
   Top: string;
   Bottom: string;
   Shoes: string | null;

@@ -10,9 +10,11 @@ interface ClothingCard {
 
 interface OutfitDoc {
   id: string;
-  OuterWear: string;
+  OuterWear: string | null;
   Top: string;
   Bottom: string;
+  Shoes: string | null;
+  Accessories: string[];
   Date: string | null;
 }
 
@@ -25,13 +27,17 @@ interface OutfitCardProps {
   onLongPress?: () => void;
 }
 
+const SLOT_W = 80; // px per slot
+
 const OutfitCard = ({ userID, outfit, clothes, canEdit, onClearDate, onLongPress }: OutfitCardProps) => {
-  const { OuterWear, Top, Bottom } = outfit;
+  const { OuterWear, Top, Bottom, Shoes, Accessories } = outfit;
   const { removeOutfit } = useCloset();
 
   const [oWImg, setoWImg] = useState<string | undefined>();
   const [topImg, setTopImg] = useState<string | undefined>();
   const [botImg, setBotImg] = useState<string | undefined>();
+  const [shoesImg, setShoesImg] = useState<string | undefined>();
+  const [accImgs, setAccImgs] = useState<(string | undefined)[]>([]);
   const [pressing, setPressing] = useState(false);
   const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -55,18 +61,43 @@ const OutfitCard = ({ userID, outfit, clothes, canEdit, onClearDate, onLongPress
   };
 
   useEffect(() => {
+    setoWImg(undefined);
+    setTopImg(undefined);
+    setBotImg(undefined);
+    setShoesImg(undefined);
+
+    const accList = Accessories ?? [];
+    const accImages: (string | undefined)[] = accList.map(() => undefined);
+
     for (const card of clothes) {
-      if (card.id === OuterWear) setoWImg(card.clothing.getImageUrl());
+      if (OuterWear && card.id === OuterWear) setoWImg(card.clothing.getImageUrl());
       if (card.id === Top) setTopImg(card.clothing.getImageUrl());
       if (card.id === Bottom) setBotImg(card.clothing.getImageUrl());
+      if (Shoes && card.id === Shoes) setShoesImg(card.clothing.getImageUrl());
+      accList.forEach((aId, i) => {
+        if (card.id === aId) accImages[i] = card.clothing.getImageUrl();
+      });
     }
-  }, [clothes, OuterWear, Top, Bottom]);
+
+    setAccImgs(accImages);
+  }, [clothes, OuterWear, Top, Bottom, Shoes, Accessories]);
+
+  // Build slots: only include optional categories if they're set
+  const slots: { img: string | undefined; alt: string }[] = [];
+  if (OuterWear) slots.push({ img: oWImg, alt: 'outerwear' });
+  slots.push({ img: topImg, alt: 'top' });
+  slots.push({ img: botImg, alt: 'bottom' });
+  if (Shoes) slots.push({ img: shoesImg, alt: 'shoes' });
+  (Accessories ?? []).forEach((_, i) => slots.push({ img: accImgs[i], alt: 'accessory' }));
+
+  const cardWidth = Math.max(slots.length, 2) * SLOT_W;
 
   return (
     <div
-      className={`relative w-72 h-36 rounded-2xl bg-white border border-mocha-200/70 shadow-sm shadow-mocha-200/40 overflow-visible cursor-pointer transition-transform duration-150
+      className={`relative h-36 rounded-2xl bg-white border border-mocha-200/70 shadow-sm shadow-mocha-200/40 overflow-visible cursor-pointer transition-transform duration-150
         ${pressing ? 'scale-95' : 'scale-100'}
         ${canEdit ? 'animate-wiggle' : ''}`}
+      style={{ width: `${cardWidth}px` }}
       onMouseDown={startPress}
       onMouseUp={cancelPress}
       onMouseLeave={cancelPress}
@@ -98,31 +129,14 @@ const OutfitCard = ({ userID, outfit, clothes, canEdit, onClearDate, onLongPress
 
       {/* Side-by-side clothing images */}
       <div className="flex flex-row w-full h-full overflow-hidden rounded-2xl divide-x divide-mocha-200/40">
-
-        {/* Outerwear slot */}
-        <div className="flex-1 flex items-center justify-center p-1">
-          {oWImg
-            ? <img src={oWImg} alt="outerwear" className="w-24 h-24 object-contain" />
-            : <div className="w-3 h-3 rounded-full border border-mocha-200/60" />
-          }
-        </div>
-
-        {/* Top slot */}
-        <div className="flex-1 flex items-center justify-center p-1">
-          {topImg
-            ? <img src={topImg} alt="top" className="w-24 h-24 object-contain" />
-            : <div className="w-3 h-3 rounded-full border border-mocha-200/60" />
-          }
-        </div>
-
-        {/* Bottom slot */}
-        <div className="flex-1 flex items-center justify-center p-1">
-          {botImg
-            ? <img src={botImg} alt="bottom" className="w-24 h-24 object-contain" />
-            : <div className="w-3 h-3 rounded-full border border-mocha-200/60" />
-          }
-        </div>
-
+        {slots.map((slot, i) => (
+          <div key={i} className="flex-shrink-0 flex items-center justify-center p-1" style={{ width: `${SLOT_W}px` }}>
+            {slot.img
+              ? <img src={slot.img} alt={slot.alt} className="w-16 h-16 object-contain" />
+              : <div className="w-3 h-3 rounded-full border border-mocha-200/60" />
+            }
+          </div>
+        ))}
       </div>
     </div>
   );

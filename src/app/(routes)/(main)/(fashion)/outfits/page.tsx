@@ -8,8 +8,10 @@ import CardList from "@/src/app/components/card-list";
 import { useUser } from "@/src/app/auth/auth";
 import OutfitCard from "@/src/app/components/outfit-card";
 import { useCloset } from "@/src/app/providers/closetContext";
-import { Pencil } from "lucide-react";
+import { Pencil, Sparkles } from "lucide-react";
 import PageSkeleton from "@/src/app/components/page-skeleton";
+import OutfitGeneratorModal from "@/src/app/components/outfit-generator-modal";
+import type { OutfitDoc } from "@/src/app/types/outfit";
 
 
 export default function Outfit() {
@@ -18,33 +20,47 @@ export default function Outfit() {
   const [outerWear, setOuterWear] = useState<[Clothing, string] | null>(null);
   const [top, setTop] = useState<[Clothing, string] | null>(null);
   const [bottom, setBottom] = useState<[Clothing, string] | null>(null);
+  const [shoes, setShoes] = useState<[Clothing, string] | null>(null);
+  const [accessories, setAccessories] = useState<[Clothing, string][]>([]);
 
   const { cards, hasClothes, outfits, addOutfit: addOutfitToContext } = useCloset();
 
   const [add, setAdd] = useState(false);
   const [edit, setEdit] = useState(false);
+  const [aiModal, setAiModal] = useState(false);
 
   const handleSelect = (item: Clothing, id: string) => {
     const type = item.getType();
     if (type === "Outerwear") setOuterWear([item, id]);
     else if (type === "Top") setTop([item, id]);
     else if (type === "Bottom") setBottom([item, id]);
+    else if (type === "Shoes") setShoes([item, id]);
+    else if (type === "Accessory") {
+      setAccessories(prev => {
+        const exists = prev.some(([, aId]) => aId === id);
+        return exists
+          ? prev.filter(([, aId]) => aId !== id)
+          : [...prev, [item, id]];
+      });
+    }
   };
 
   const addOutfit = async () => {
-    if (!user || !outerWear || !top || !bottom) return;
+    if (!user || !top || !bottom) return;
     const { data } = await supabase.from('outfits').insert({
       user_id: user.id,
-      outer_wear: outerWear[1],
+      outer_wear: outerWear?.[1] ?? null,
       top: top[1],
       bottom: bottom[1],
+      shoes: shoes?.[1] ?? null,
+      accessories: accessories.map(([, id]) => id),
       date: null,
     }).select().single();
 
     if (data) {
       addOutfitToContext({
         id: data.id,
-        OuterWear: data.outer_wear,
+        OuterWear: data.outer_wear ?? null,
         Top: data.top,
         Bottom: data.bottom,
         Shoes: data.shoes ?? null,
@@ -55,7 +71,7 @@ export default function Outfit() {
   };
 
   const createOutfit = () => {
-    if (outerWear && top && bottom) {
+    if (top && bottom) {
       addOutfit();
       exit();
     }
@@ -66,6 +82,8 @@ export default function Outfit() {
     setOuterWear(null);
     setTop(null);
     setBottom(null);
+    setShoes(null);
+    setAccessories([]);
   };
 
   const memoizedOutfits = useMemo(() => {
@@ -118,6 +136,13 @@ export default function Outfit() {
               >
                 <IoMdAdd size={13} />
                 New Look
+              </button>
+              <button
+                onClick={() => setAiModal(true)}
+                className="flex items-center gap-2 px-5 py-2.5 border border-mocha-300 text-mocha-500 text-[10px] tracking-[0.3em] uppercase rounded-full hover:border-mocha-500 transition-all duration-300"
+              >
+                <Sparkles size={11} />
+                Generate
               </button>
               <button
                 onClick={() => setEdit(!edit)}
@@ -183,25 +208,76 @@ export default function Outfit() {
               </h2>
             </div>
 
-            {/* Preview slots */}
-            <div className="grid grid-cols-3 gap-3 sm:gap-6">
-              {[
-                { label: 'Outerwear', item: outerWear },
-                { label: 'Top',       item: top       },
-                { label: 'Bottom',    item: bottom    },
-              ].map(({ label, item }) => (
-                <div key={label} className="border border-dashed border-mocha-300 rounded-2xl aspect-square flex flex-col justify-center items-center overflow-hidden">
-                  {item ? (
-                    <img alt={label} src={item[0].getImageUrl()} className="w-full h-full object-contain p-3" />
+            {/* ── Required items ─────────────────────────────── */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-3">
+                <span className="text-[9px] tracking-[0.4em] uppercase text-mocha-500 font-medium">Required</span>
+                <div className="flex-1 h-px bg-mocha-200" />
+              </div>
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                {([
+                  { label: 'Top', item: top },
+                  { label: 'Bottom', item: bottom },
+                ] as { label: string; item: [Clothing, string] | null }[]).map(({ label, item }) => (
+                  <div
+                    key={label}
+                    className={`rounded-2xl aspect-square flex flex-col justify-center items-center overflow-hidden transition-all duration-200 ${
+                      item ? 'border border-mocha-400 bg-white' : 'border border-dashed border-mocha-300'
+                    }`}
+                  >
+                    {item ? (
+                      <img alt={label} src={item[0].getImageUrl()} className="w-full h-full object-contain p-3" />
+                    ) : (
+                      <p className="text-[10px] tracking-[0.3em] uppercase text-mocha-300">{label}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* ── Optional items ─────────────────────────────── */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-3">
+                <span className="text-[9px] tracking-[0.4em] uppercase text-mocha-300">Optional</span>
+                <div className="flex-1 h-px bg-mocha-100" />
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                {/* Outerwear */}
+                <div className={`border border-dashed rounded-2xl aspect-square flex flex-col justify-center items-center overflow-hidden transition-all duration-200 ${outerWear ? 'border-mocha-300 bg-white' : 'border-mocha-200'}`}>
+                  {outerWear ? (
+                    <img alt="Outerwear" src={outerWear[0].getImageUrl()} className="w-full h-full object-contain p-2" />
                   ) : (
-                    <p className="text-[10px] tracking-[0.3em] uppercase text-mocha-300">{label}</p>
+                    <p className="text-[9px] tracking-[0.25em] uppercase text-mocha-200">Outerwear</p>
                   )}
                 </div>
-              ))}
+                {/* Shoes */}
+                <div className={`border border-dashed rounded-2xl aspect-square flex flex-col justify-center items-center overflow-hidden transition-all duration-200 ${shoes ? 'border-mocha-300 bg-white' : 'border-mocha-200'}`}>
+                  {shoes ? (
+                    <img alt="Shoes" src={shoes[0].getImageUrl()} className="w-full h-full object-contain p-2" />
+                  ) : (
+                    <p className="text-[9px] tracking-[0.25em] uppercase text-mocha-200">Shoes</p>
+                  )}
+                </div>
+                {/* Accessories */}
+                <div className={`border border-dashed rounded-2xl aspect-square flex flex-col justify-center items-center overflow-hidden transition-all duration-200 p-2 ${accessories.length > 0 ? 'border-mocha-300 bg-white' : 'border-mocha-200'}`}>
+                  {accessories.length > 0 ? (
+                    <div className="flex flex-wrap gap-0.5 justify-center items-center w-full h-full">
+                      {accessories.slice(0, 4).map(([item, id]) => (
+                        <img key={id} src={item.getImageUrl()} alt="accessory" className="w-8 h-8 object-contain" />
+                      ))}
+                      {accessories.length > 4 && (
+                        <span className="text-[9px] text-mocha-300">+{accessories.length - 4}</span>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-[9px] tracking-[0.25em] uppercase text-mocha-200">Accessories</p>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* Card picker */}
-            <div className="h-40 sm:h-52 overflow-y-auto rounded-2xl border border-mocha-200">
+            <div className="h-40 sm:h-48 overflow-y-auto rounded-2xl border border-mocha-200">
               <CardList
                 userID={user.id}
                 cards={cards}
@@ -214,13 +290,23 @@ export default function Outfit() {
 
             <button
               onClick={createOutfit}
-              disabled={!outerWear || !top || !bottom}
+              disabled={!top || !bottom}
               className="w-full py-3.5 bg-mocha-500 text-mocha-100 text-[11px] tracking-[0.3em] uppercase rounded-full hover:bg-mocha-400 transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               Save Outfit
             </button>
           </div>
         </div>
+      )}
+
+      {/* AI Outfit Generator Modal */}
+      {aiModal && (
+        <OutfitGeneratorModal
+          userId={user.id}
+          cards={cards}
+          onClose={() => setAiModal(false)}
+          onSave={(doc: OutfitDoc) => addOutfitToContext(doc)}
+        />
       )}
     </div>
   );

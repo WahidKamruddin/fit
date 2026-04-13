@@ -5,8 +5,27 @@ import { Inter } from 'next/font/google'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'FIT',
-  description: 'Curated Outfits',
+  title: {
+    default: 'FIT. — Your AI Wardrobe',
+    template: '%s | FIT.',
+  },
+  description: 'Curate, organise and style your wardrobe with AI. Build outfits, plan your week, and dress for every version of you.',
+  openGraph: {
+    title: 'FIT. — Your AI Wardrobe',
+    description: 'Curate, organise and style your wardrobe with AI. Build outfits, plan your week, and dress for every version of you.',
+    url: 'https://fit-ai-closet.netlify.app',
+    siteName: 'FIT.',
+    type: 'website',
+    locale: 'en_US',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'FIT. — Your AI Wardrobe',
+    description: 'Curate, organise and style your wardrobe with AI. Build outfits, plan your week, and dress for every version of you.',
+  },
+  icons: {
+    icon: '/icon',
+  },
 }
 
 export default function RootLayout({
@@ -18,7 +37,7 @@ export default function RootLayout({
     <html className="scroll-smooth snap-y snap-proximity bg-mocha-500" lang="en">
       <body className={inter.className}>
         {children}
-        </body>
+      </body>
     </html>
   )
 }

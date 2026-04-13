@@ -6,7 +6,7 @@ const links = [
 
 export default function Footer() {
     return (
-        <footer className="bg-mocha-500 border-t border-mocha-400/30 py-8">
+        <footer className="bg-mocha-500 border-t border-mocha-400/30 py-8 snap-start">
             <div className="max-w-7xl mx-auto px-8 sm:px-16 flex flex-col sm:flex-row justify-between items-center gap-6">
                 <span className="font-cormorant text-xl text-mocha-300 tracking-[0.2em]">
                     FIT.

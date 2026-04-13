@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { supabase } from "../supabaseConfig/client";
 import { useCloset } from "../providers/closetContext";
 import Clothing from "../classes/clothes";
+import ConfirmDialog from "./confirm-dialog";
 
 interface CardProps {
   userID: string;
@@ -17,8 +18,9 @@ interface CardProps {
 const Card = ({ userID, aClothing, edit, select, handleOuterWear, onLongPress }: CardProps) => {
   const [starred, setStarred] = useState(aClothing.clothing.starred);
   const [pressing, setPressing] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const { removeCard } = useCloset();
+  const { removeCard, outfits, removeOutfit } = useCloset();
 
   const startPress = () => {
     setPressing(true);
@@ -39,12 +41,25 @@ const Card = ({ userID, aClothing, edit, select, handleOuterWear, onLongPress }:
     await supabase.from('clothes').update({ starred: newStarred }).eq('id', aClothing.id);
   };
 
+  const affectedOutfits = outfits.filter(o =>
+    o.Top === aClothing.id ||
+    o.Bottom === aClothing.id ||
+    o.OuterWear === aClothing.id ||
+    o.Shoes === aClothing.id ||
+    (o.Accessories ?? []).includes(aClothing.id)
+  );
+
   const deleteClothing = async () => {
+    if (affectedOutfits.length > 0) {
+      await supabase.from('outfits').delete().in('id', affectedOutfits.map(o => o.id));
+      affectedOutfits.forEach(o => removeOutfit(o.id));
+    }
     removeCard(aClothing.id);
     if (aClothing.imageId) {
       await supabase.storage.from('clothing-images').remove([`${userID}/${aClothing.imageId}`]);
     }
     await supabase.from('clothes').delete().eq('id', aClothing.id);
+    setConfirmOpen(false);
   };
 
   return (
@@ -63,11 +78,24 @@ const Card = ({ userID, aClothing, edit, select, handleOuterWear, onLongPress }:
       {edit && (
         <button
           className="absolute -top-2 -right-2 z-20 w-6 h-6 flex items-center justify-center rounded-full bg-red-500 text-white shadow-md transition-transform duration-150 hover:scale-110 active:scale-95 text-xs leading-none font-medium"
-          onClick={deleteClothing}
+          onClick={() => setConfirmOpen(true)}
           aria-label="Delete"
         >
           ✕
         </button>
+      )}
+
+      {confirmOpen && (
+        <ConfirmDialog
+          title="Delete this piece?"
+          body={
+            affectedOutfits.length > 0
+              ? `This item appears in ${affectedOutfits.length} outfit${affectedOutfits.length > 1 ? 's' : ''}. Deleting it will also remove those looks.`
+              : "This action cannot be undone."
+          }
+          onConfirm={deleteClothing}
+          onCancel={() => setConfirmOpen(false)}
+        />
       )}
 
       {/* Card surface */}

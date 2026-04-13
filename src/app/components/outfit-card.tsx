@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "../supabaseConfig/client";
 import { useCloset } from "../providers/closetContext";
 import Clothing from "../classes/clothes";
+import ConfirmDialog from "./confirm-dialog";
 
 interface ClothingCard {
   clothing: Clothing;
@@ -33,6 +34,7 @@ const OutfitCard = ({ userID, outfit, clothes, canEdit, onClearDate, onLongPress
   const { OuterWear, Top, Bottom, Shoes, Accessories } = outfit;
   const { removeOutfit } = useCloset();
 
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [oWImg, setoWImg] = useState<string | undefined>();
   const [topImg, setTopImg] = useState<string | undefined>();
   const [botImg, setBotImg] = useState<string | undefined>();
@@ -45,6 +47,7 @@ const OutfitCard = ({ userID, outfit, clothes, canEdit, onClearDate, onLongPress
     if (!userID) return;
     removeOutfit(outfit.id);
     await supabase.from('outfits').delete().eq('id', outfit.id);
+    setConfirmOpen(false);
   };
 
   const startPress = () => {
@@ -109,11 +112,20 @@ const OutfitCard = ({ userID, outfit, clothes, canEdit, onClearDate, onLongPress
       {canEdit && (
         <button
           className="absolute -top-2 -right-2 z-20 w-6 h-6 flex items-center justify-center rounded-full bg-red-500 text-white shadow-md text-xs leading-none font-medium transition-transform duration-150 hover:scale-110 active:scale-95"
-          onClick={deleteOutfit}
+          onClick={() => setConfirmOpen(true)}
           aria-label="Delete outfit"
         >
           ✕
         </button>
+      )}
+
+      {confirmOpen && (
+        <ConfirmDialog
+          title="Delete this look?"
+          body="This outfit will be permanently removed. This action cannot be undone."
+          onConfirm={deleteOutfit}
+          onCancel={() => setConfirmOpen(false)}
+        />
       )}
 
       {/* Clear date button */}

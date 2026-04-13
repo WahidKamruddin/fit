@@ -1,8 +1,6 @@
-import './globals.css'
+import '@/src/app/styles/globals.css'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
-import Navbar from './components/navbar'
-import Footer from './components/footer'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -17,11 +15,9 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html className="scroll-smooth" lang="en">
+    <html className="scroll-smooth snap-y snap-mandatory bg-mocha-500" lang="en">
       <body className={inter.className}>
-        <Navbar/>
         {children}
-        <Footer/>
         </body>
     </html>
   )

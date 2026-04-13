@@ -1,96 +1,99 @@
+"use client"
+import React from "react";
 import { BiCloset } from "react-icons/bi";
 import { PiTShirt } from "react-icons/pi";
 import { AiOutlineShopping } from "react-icons/ai";
 import { BsBell } from "react-icons/bs";
+import { useInView } from "../hooks/use-in-view";
 
+const milestones = [
+    {
+        Icon: BiCloset,
+        label: "Digital Closet",
+        date: "Apr 2025 — Beta Launch",
+        done: true,
+    },
+    {
+        Icon: PiTShirt,
+        label: "AI Outfit Generator",
+        date: "Jun 2025 — Launch",
+        done: false,
+    },
+    {
+        Icon: AiOutlineShopping,
+        label: "Shop",
+        date: "Sept 2025",
+        done: false,
+    },
+    {
+        Icon: BsBell,
+        label: "More to come...",
+        date: "TBD",
+        done: false,
+    },
+];
 
 export default function Timeline() {
+    const { ref: sectionRef, inView } = useInView()
+
     return (
-        <div id="timeline" className="h-screen bg-off-white-100">
-            <h1 className="pt-20 text-4xl text-center text-mocha-400">Future Plans</h1>
+        <section ref={sectionRef as React.RefObject<HTMLElement>} id="timeline" className="min-h-screen bg-mocha-100 flex items-center py-28 snap-start">
+            <div className="max-w-7xl mx-auto px-8 sm:px-16 w-full">
 
-            {/* Timeline CSS by Chris-Mingay! https://tailwindcomponents.com/component/responsive-vertical-timeline-1*/}
+                {/* Section label */}
+                <div className={`flex items-center gap-4 mb-20 reveal ${inView ? 'is-visible' : ''}`}>
+                    <span className="text-[10px] text-mocha-400 tracking-[0.5em] uppercase">04</span>
+                    <div className="w-10 h-px bg-mocha-300" />
+                    <span className="text-[10px] text-mocha-400 tracking-[0.5em] uppercase">Roadmap</span>
+                </div>
 
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-start">
 
-            <div className="bg-off-white-100 mt-20 flex flex-col justify-center">
-                <div className="py-3 sm:max-w-xl sm:mx-auto w-full px-2 sm:px-0">
-
-                    <div className="relative text-gray-700 antialiased text-sm font-semibold">
-
-                        {/* <!-- Vertical bar running through middle --> */}
-                        <div className="hidden sm:block w-1 bg-mocha-400 absolute h-full left-1/2 transform -translate-x-1/2"></div>
-
-                        {/* <!-- Left section, set by justify-start and sm:pr-8 --> */}
-                        <div className="mt-6 sm:mt-0 sm:mb-12">
-                            <div className="flex flex-col sm:flex-row items-center">
-                                <div className="flex justify-start w-full mx-auto items-center">
-                                    <div className="w-full sm:w-1/2 sm:pr-8">
-                                        <div className="py-4 px-6 bg-mocha-400 text-white text-center rounded shadow">
-                                            Digital Closet <br></br>(Expected Nov 2023)
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="rounded-full bg-mocha-400 border-mocha-400 border-4 text-lg w-8 h-8 absolute left-1/2 -translate-y-4 sm:translate-y-0 transform -translate-x-1/2 flex items-center justify-center">
-                                    <BiCloset color="white"/>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* <!-- Right section, set by justify-end and sm:pl-8 --> */}
-                        <div className="mt-6 sm:mt-0 sm:mb-12">
-                            <div className="flex flex-col sm:flex-row items-center">
-                                <div className="flex justify-end w-full mx-auto items-center">
-                                    <div className="w-full sm:w-1/2 sm:pl-8">
-                                        <div className="py-4 px-6 bg-mocha-400 text-white  text-center rounded shadow">
-                                            AI Outfit Generator <br></br>(Expected Dec 2023)
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="rounded-full bg-off-white-100 border-mocha-400 text-mocha-400 text-lg border-2 w-8 h-8 absolute left-1/2 -translate-y-4 sm:translate-y-0 transform -translate-x-1/2 flex items-center justify-center">
-                                    <PiTShirt/>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* <!-- Left section, set by justify-start and sm:pr-8 --> */}
-                        <div className="mt-6 sm:mt-0 sm:mb-12">
-                            <div className="flex flex-col sm:flex-row items-center">
-                                <div className="flex justify-start w-full mx-auto items-center">
-                                    <div className="w-full sm:w-1/2 sm:pr-8">
-                                        <div className="py-4 px-6 bg-mocha-400 text-white text-center rounded shadow">
-                                            E-commerce <br></br>(Expected March 2024)
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="rounded-full bg-off-white-100 border-mocha-400 border-2 text-mocha-400 text-lg w-8 h-8 absolute left-1/2 -translate-y-4 sm:translate-y-0 transform -translate-x-1/2 flex items-center justify-center">
-                                    <AiOutlineShopping/>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* <!-- Right section, set by justify-end and sm:pl-8 --> */}
-                        <div className="mt-6 sm:mt-0">
-                            <div className="flex flex-col sm:flex-row items-center">
-                                <div className="flex justify-end w-full mx-auto items-center">
-                                    <div className="w-full sm:w-1/2 sm:pl-8">
-                                        <div className="py-4 px-6 bg-mocha-400 text-white text-center rounded shadow">
-                                            More to come ...
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="rounded-full bg-off-white-100 border-mocha-400 border-2 text-lg w-8 h-8 text-mocha-400 absolute left-1/2 -translate-y-4 sm:translate-y-0 transform -translate-x-1/2 flex items-center justify-center">
-                                    <BsBell/>
-                                </div>
-                            </div>
-                        </div>
-
-
-
+                    {/* Heading */}
+                    <div className={`reveal-left ${inView ? 'is-visible' : ''}`} style={{ transitionDelay: '0.1s' }}>
+                        <h2 className="font-cormorant text-5xl sm:text-6xl font-light text-mocha-500 leading-[1.05]">
+                            {"What's"}<br />
+                            <span className="italic text-mocha-400">coming next.</span>
+                        </h2>
+                        <p className="mt-8 text-mocha-400 text-sm font-light leading-relaxed max-w-xs">
+                            {"We're building in public. Here's the roadmap for FIT as we grow from a beta closet to a full AI-powered wardrobe platform."}
+                        </p>
                     </div>
 
+                    {/* Timeline list */}
+                    <div className="relative">
+                        {/* Vertical line */}
+                        <div className="absolute left-6 top-6 bottom-6 w-px bg-mocha-300" />
+
+                        <div className="space-y-10">
+                            {milestones.map((m, i) => (
+                                <div key={i} className={`flex gap-8 items-start reveal ${inView ? 'is-visible' : ''}`} style={{ transitionDelay: `${0.2 + i * 0.1}s` }}>
+                                    {/* Icon dot — 48 px wide, centered on the line at left:6 (24px) */}
+                                    <div
+                                        className={`relative z-10 w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 border-2 transition-all duration-300 ${
+                                            m.done
+                                                ? 'bg-mocha-500 border-mocha-500 text-mocha-100'
+                                                : 'bg-off-white-100 border-mocha-400 text-mocha-400'
+                                        }`}
+                                    >
+                                        <m.Icon size={18} />
+                                    </div>
+
+                                    {/* Label */}
+                                    <div className="pt-2.5">
+                                        <p className="text-[10px] tracking-[0.4em] uppercase text-mocha-400 mb-2">
+                                            {m.date}
+                                        </p>
+                                        <h3 className="font-cormorant text-2xl sm:text-3xl text-mocha-500 font-medium leading-tight">
+                                            {m.label}
+                                        </h3>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-
+        </section>
     )
 }

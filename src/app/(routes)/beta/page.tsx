@@ -41,7 +41,7 @@ export default function BetaPage() {
             Private Beta
           </p>
           <h1 className="font-cormorant text-4xl font-light text-mocha-100 leading-tight mb-2">
-            You're early.
+            You&apos;re early.
           </h1>
           <p className="text-sm font-light text-mocha-300 leading-relaxed mb-10">
             Enter your access code to continue.

@@ -2,10 +2,21 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-const PUBLIC_PATHS = ['/', '/login', '/register', '/pricing', '/bugs', '/auth/callback', '/auth/signout']
+const PUBLIC_PATHS = ['/', '/login', '/register', '/pricing', '/bugs', '/beta', '/auth/callback', '/auth/signout']
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
+
+  // ── Beta gate ────────────────────────────────────────────────────────────────
+  // If BETA=true, only '/', '/pricing', and '/beta' are visible without a cookie.
+  const BETA_OPEN = ['/', '/pricing', '/beta']
+  if (process.env.BETA === 'true' && !BETA_OPEN.includes(pathname)) {
+    const hasBetaAccess = request.cookies.has('beta_access')
+    if (!hasBetaAccess) {
+      return NextResponse.redirect(new URL('/beta', request.url))
+    }
+  }
+  // ────────────────────────────────────────────────────────────────────────────
 
   if (PUBLIC_PATHS.includes(pathname)) {
     return NextResponse.next()

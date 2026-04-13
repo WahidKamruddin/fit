@@ -98,7 +98,7 @@ export default function Outfit() {
         />
       </div>
     ));
-  }, [outfits, cards, edit]);
+  }, [outfits, cards, edit, user?.id]);
 
   if (!user) return <PageSkeleton />;
 

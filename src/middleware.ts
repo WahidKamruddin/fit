@@ -2,18 +2,19 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-const PUBLIC_PATHS = ['/', '/login', '/register', '/pricing', '/bugs', '/beta', '/auth/callback', '/auth/signout']
+const PUBLIC_PATHS = ['/', '/login', '/register', '/pricing', '/beta', '/bugs', '/auth/callback', '/auth/signout']
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // ── Beta gate ────────────────────────────────────────────────────────────────
-  // If BETA=true, only '/', '/pricing', and '/beta' are visible without a cookie.
-  const BETA_OPEN = ['/', '/pricing', '/beta']
-  if (process.env.BETA === 'true' && !BETA_OPEN.includes(pathname)) {
+  if (process.env.BETA === 'true') {
     const hasBetaAccess = request.cookies.has('beta_access')
-    if (!hasBetaAccess) {
+    if (pathname === '/login' && !hasBetaAccess) {
       return NextResponse.redirect(new URL('/beta', request.url))
+    }
+    if (pathname === '/beta' && hasBetaAccess) {
+      return NextResponse.redirect(new URL('/login', request.url))
     }
   }
   // ────────────────────────────────────────────────────────────────────────────
@@ -54,7 +55,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Run on all routes except static files and Next.js internals
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }

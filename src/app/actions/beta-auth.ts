@@ -1,24 +1,17 @@
 'use server'
 
 import { cookies } from 'next/headers'
-import { redirect } from 'next/navigation'
 
-export async function verifyBeta(formData: FormData): Promise<{ error: string } | never> {
+export async function verifyBeta(formData: FormData): Promise<{ error: string } | { success: true }> {
   const submitted = (formData.get('password') as string ?? '').trim()
   const correct   = process.env.BETA_PASSWORD ?? ''
 
-  if (!correct) {
-    // No password configured — let them through (misconfiguration safety)
-    cookies().set('beta_access', 'true', cookieOpts())
-    redirect('/login')
-  }
-
-  if (submitted !== correct) {
+  if (submitted !== correct && correct !== '') {
     return { error: 'Incorrect access code.' }
   }
 
   cookies().set('beta_access', 'true', cookieOpts())
-  redirect('/login')
+  return { success: true }
 }
 
 function cookieOpts() {

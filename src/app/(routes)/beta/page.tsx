@@ -14,7 +14,12 @@ export default function BetaPage() {
     const formData = new FormData(e.currentTarget)
     startTransition(async () => {
       const result = await verifyBeta(formData)
-      if (result?.error) setError(result.error)
+      if ('error' in result) {
+        setError(result.error)
+      } else {
+        // Hard navigation ensures the cookie is stored before the next request
+        window.location.href = '/login'
+      }
     })
   }
 

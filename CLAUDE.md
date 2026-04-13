@@ -56,11 +56,14 @@ All pages under `(main)` are protected by middleware. During the brief session-h
 
 - **`ClosetProvider`** (`providers/closetContext.tsx`) — wraps all `(main)` routes. Fetches clothes and outfits from Supabase on mount, then subscribes to real-time updates via `supabase.channel()` + `postgres_changes`. Exposes `{ cards, outfits, hasClothes, addCard, removeCard, addOutfit, removeOutfit, updateOutfitDate }` through `useCloset()`.
 - All reads and writes use Supabase: `supabase.from('clothes')`, `supabase.from('outfits')`, `supabase.storage.from('clothing-images')`.
-- The `clothes` table uses **snake_case** columns (`name`, `color`, `type`, `image`, `image_id`, `material`, `style`, `user_id`, `starred`). The `OutfitDoc` interface in the provider uses **PascalCase** (`OuterWear`, `Top`, `Bottom`, `Date`) mapped from the snake_case Supabase columns (`outer_wear`, `top`, `bottom`, `date`).
+- The `clothes` table uses **snake_case** columns: `name`, `color` (jsonb), `type`, `image`, `image_id`, `material`, `style`, `comfort`, `warmth`, `weather`, `vibe`, `size`, `user_id`, `starred`.
+- The `outfits` table columns: `outer_wear`, `top`, `bottom`, `shoes`, `accessories` (text[]), `date`. All store clothing row UUIDs. The `OutfitDoc` interface in the context uses **PascalCase** (`OuterWear`, `Top`, `Bottom`, `Shoes`, `Accessories`, `Date`) mapped from snake_case. `OuterWear` is `string | null` (optional).
 
 ### Clothing class
 
-`classes/clothes.tsx` is a plain TS class. Firebase snapshots are hydrated into `Clothing` instances inside `ClosetProvider`. Always use getters (`getName()`, `getType()`, `getImageUrl()`, `getColor()`, `getStyle()`, `getMaterial()`) — fields are private.
+`classes/clothes.tsx` is a plain TS class. Rows from Supabase are hydrated into `Clothing` instances inside `ClosetProvider`. Fields are private — always use getters: `getName()`, `getType()`, `getImageUrl()`, `getColor()`, `getColorName()`, `getColorHex()`, `getMaterial()`, `getStyle()`, `getVibe()`, `getWeather()`, `getWarmth()`, `getComfort()`, `getSize()`, `getStarred()`.
+
+**Note**: The `Clothing` class is planned for deprecation in favour of plain TypeScript interfaces. Design new features against `ClothingItem` / `ClothingRow` from `types/clothing.ts`, not the class.
 
 ### UI / Design system
 
@@ -97,9 +100,94 @@ All pages under `(main)` are protected by middleware. During the brief session-h
 - **`components/faq.tsx`** — accordion FAQ section on the landing page (between Timeline and Contact). Uses `useInView()` for scroll reveal.
 - **`app/not-found.tsx`** — Next.js App Router 404 page, on-theme with mocha palette.
 
+### Clothing metadata
+
+Every clothing item stored in the `clothes` table carries rich metadata inferred by Gemini at upload time:
+
+| Column | Type | Description |
+|---|---|---|
+| `color` | `jsonb` | `[colorName, hexCode]` tuple, e.g. `["Charcoal", "#36454F"]` |
+| `material` | `text` | Primary material (cotton, wool, denim…) |
+| `comfort` | `int` | 1–10 scale (1 = corset, 10 = sweatpants) |
+| `warmth` | `int` | 1–10 scale (1 = breathable, 10 = insulating) |
+| `weather` | `text[]` | Subset of `WEATHER_OPTIONS`: hot, warm, mild, cool, cold, rainy, windy, snowy |
+| `style` | `text[]` | Subset of `STYLE_OPTIONS`: layering-piece, statement, basic, accent, versatile, seasonal |
+| `vibe` | `text[]` | Subset of `VIBE_OPTIONS`: streetwear, minimalist, sporty, casual, formal, preppy, bohemian, vintage, techwear, athleisure, smart-casual, loungewear |
+
+All option sets are defined as `as const` arrays in `types/clothing.ts` and used for both AI prompt constraints and TypeScript types. The `Clothing` class exposes getters for all fields (`getWarmth()`, `getComfort()`, `getVibe()`, `getStyle()`, `getWeather()`).
+
+**Upload flow**: photo → background removal API → base64 FileReader → Gemini `analyzeClothing()` server action (parallel with Supabase storage upload) → insert full row including metadata. Falls back to defaults if `GEMENI_PUBLIC_API_KEY` is missing or AI call fails.
+
+### Outfit generation
+
+`api/generate-outfit.ts` — pure client-side utility (no server action, no network call). Takes `ClothingCard[]` from `ClosetContext` and `OutfitPreferences`, returns `GeneratedOutfit | { error: string }`.
+
+**Do not make this a server action** — the shared `supabase` client is a `createBrowserClient` which carries no session in server context, so RLS would block the query. The data is already available in `ClosetContext`.
+
+#### Scoring
+
+Each clothing item receives a `matchScore ∈ [0, 1]` against the user's preferences:
+
+```
+matchScore = 0.4 × vibeScore + 0.3 × styleScore + 0.3 × weatherScore
+
+vibeScore    = prefs.vibes.length > 0
+                 ? |item.vibe ∩ prefs.vibes| / prefs.vibes.length
+                 : 0.5   ← neutral when user expresses no vibe preference
+
+styleScore   = prefs.styles.length > 0
+                 ? |item.style ∩ prefs.styles| / prefs.styles.length
+                 : 0.5
+
+weatherScore = prefs.weather.length > 0
+                 ? |item.weather ∩ prefs.weather| / prefs.weather.length
+                 : 0.5
+```
+
+#### Construction
+
+1. Score all items, group by `type`.
+2. **Required**: Top + Bottom. If either category is empty → `{ error: "Not enough clothes found…" }`.
+3. **Outerwear**: only included if `prefs.weather` contains any of `cool | cold | windy | snowy`. Skipped otherwise even if items exist.
+4. **Shoes** and **Accessories** (up to 1): always included if items exist.
+5. From each category, the item with the highest `matchScore` is selected.
+
+#### Warmth / comfort scores (weighted aggregation)
+
+Role weights before normalization:
+
+| Role | Weight |
+|---|---|
+| Outerwear | 0.35 |
+| Top | 0.20 |
+| Bottom | 0.20 |
+| Shoes | 0.15 |
+| Accessory | 0.10 |
+
+Weights for roles **not present** in the outfit are dropped and the remaining weights are normalized to sum to 1. This means if there's no outerwear, its 0.35 is redistributed proportionally across the other roles.
+
+```
+itemWarmth_100  = (item.warmth  − 1) / 9 × 100   // maps 1–10 → 0–100
+itemComfort_100 = (item.comfort − 1) / 9 × 100
+
+outfitWarmth  = Σ (itemWarmth_100  × normalizedWeight)
+outfitComfort = Σ (itemComfort_100 × normalizedWeight)
+```
+
+#### Derived outfit metadata
+
+- `dominantVibes` / `dominantStyles` — vibes/styles present in **≥ 2** selected items.
+- `weatherSuitability` — union of all `weather[]` arrays across selected items.
+- `confidenceScore` — average `matchScore` of all selected items × 100.
+
+#### Saving
+
+`components/outfit-generator-modal.tsx` handles the DB insert after the user clicks "Save Look". The `generateOutfit()` call is synchronous; only the Supabase insert is async.
+
 ### AI features
 
-- `api/gemeniapi.ts` — server action calling Gemini 1.5 Flash. Reads `GEMENI_PUBLIC_API_KEY` from env. Only used in `test/page.tsx`.
+- `api/analyze-clothing.ts` — server action calling Gemini 2.5 Flash. Receives base64 image, returns `ClothingAnalysis` (name, color tuple, type, full metadata). Falls back to `DEFAULT_ANALYSIS` if key missing or call fails.
+- `api/gemeniapi.ts` — legacy server action, only used in `test/page.tsx` sandbox.
 - Background removal — external API service called during clothing upload in `closet/page.tsx`. Sends a `POST` with `X-Api-Key` header.
 
 ### Environment variables (`.env.local`)

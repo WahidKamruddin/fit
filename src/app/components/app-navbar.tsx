@@ -30,6 +30,12 @@ const navGroups = [
     ],
   },
   {
+    label: "Bugs",
+    items: [
+      { label: "Report a Bug", href: "/bugs" },
+    ],
+  },
+  {
     label: "Settings",
     items: [
       { label: "General",  href: "/settings/general" },

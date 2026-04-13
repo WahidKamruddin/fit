@@ -144,7 +144,7 @@ const OutfitCard = ({ userID, outfit, clothes, canEdit, onClearDate, onLongPress
         {slots.map((slot, i) => (
           <div key={i} className="flex-shrink-0 flex items-center justify-center p-3" style={{ width: `${SLOT_W}px` }}>
             {slot.img
-              ? <img src={slot.img} alt={slot.alt} className="w-full h-full object-contain" />
+              ? <img src={slot.img} alt={slot.alt} className="w-full h-full object-contain" draggable={false} />
               : <div className="w-3 h-3 rounded-full border border-mocha-200/60" />
             }
           </div>

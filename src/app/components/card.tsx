@@ -117,6 +117,7 @@ const Card = ({ userID, aClothing, edit, select, handleOuterWear, onLongPress }:
           alt={aClothing.clothing.getName()}
           src={aClothing.clothing.getImageUrl()}
           className="w-full h-full object-contain p-4 transition-all duration-300 group-hover:scale-105 group-hover:opacity-40"
+          draggable={false}
         />
 
         {/* Hover overlay */}

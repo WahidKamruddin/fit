@@ -39,40 +39,24 @@ export default function Closet() {
 
   const fileTypes = ["JPG", "JPEG", "PNG", "GIF"];
 
-  const BG_REMOVAL_TIMEOUT_MS = 30_000;
-
-  // Function to handle background removal
+  // Function to handle background removal (client-side via @imgly/background-removal)
   const handleBackgroundRemoval = async (): Promise<File> => {
     if (!file) throw new Error('No file selected');
 
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), BG_REMOVAL_TIMEOUT_MS);
+    const { removeBackground } = await import('@imgly/background-removal');
 
-    const formData = new FormData();
-    formData.append("file", file);
+    const imageBlob = await removeBackground(file, {
+      model: 'isnet_quint8',
+      output: {
+        format: 'image/png',
+        quality: 1.0,
+      },
+      progress: () => {
+        setLoadingStep('Removing background…');
+      },
+    });
 
-    try {
-      const response = await fetch('/api/remove-background', {
-        method: "POST",
-        body: formData,
-        signal: controller.signal,
-      });
-
-      if (!response.ok) {
-        const text = await response.text().catch(() => '');
-        throw new Error(`Background removal failed (${response.status}${text ? `: ${text}` : ''})`);
-      }
-
-      const blob = await response.blob();
-      return new File([blob], "processed-image.png", { type: "image/png" });
-    } catch (error) {
-      if (error instanceof Error && error.name === 'AbortError') {
-        throw new Error('Background removal timed out. Please try again.');
-      }
-      throw error;
-    } finally {
-      clearTimeout(timeout);
-    }
+    return new File([imageBlob], 'processed-image.png', { type: 'image/png' });
   };
 
   const createClothing = async (e: React.FormEvent) => {

@@ -1,3 +1,5 @@
+// DEPRECATED: Background removal is now handled client-side via @imgly/background-removal.
+// Retained for rollback. Safe to delete after client-side path is confirmed stable in prod.
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {

@@ -11,11 +11,6 @@ export async function GET(request: NextRequest) {
     : forwardedHost ? `https://${forwardedHost}` : new URL(request.url).origin
   const code = searchParams.get('code')
 
-  console.log('[auth/callback] request.url:', request.url)
-  console.log('[auth/callback] x-forwarded-host:', forwardedHost)
-  console.log('[auth/callback] resolved origin:', origin)
-  console.log('[auth/callback] code present:', !!code)
-
   if (code) {
     const cookieStore = await cookies()
 
@@ -37,8 +32,6 @@ export async function GET(request: NextRequest) {
     )
 
     const { error } = await supabase.auth.exchangeCodeForSession(code)
-    console.log('[auth/callback] exchangeCodeForSession error:', error)
-
     if (!error) {
       return NextResponse.redirect(`${origin}/dashboard`)
     }

@@ -5,6 +5,7 @@ import { Inter } from 'next/font/google'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://fit-ai-closet.netlify.app'),
   title: {
     default: 'FIT — Your AI Wardrobe',
     template: '%s | FIT',

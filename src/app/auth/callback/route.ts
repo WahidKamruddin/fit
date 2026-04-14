@@ -5,7 +5,10 @@ import type { NextRequest } from 'next/server'
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
-  const origin = process.env.NEXT_PUBLIC_SITE_URL ?? new URL(request.url).origin
+  const forwardedHost = request.headers.get('x-forwarded-host')
+  const origin = process.env.NODE_ENV === 'development'
+    ? new URL(request.url).origin
+    : forwardedHost ? `https://${forwardedHost}` : new URL(request.url).origin
   const code = searchParams.get('code')
 
   if (code) {

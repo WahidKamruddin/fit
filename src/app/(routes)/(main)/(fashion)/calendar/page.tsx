@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useUser } from "@/src/app/auth/auth";
 import { supabase } from "@/src/app/supabaseConfig/client";
 import { add, eachDayOfInterval, endOfMonth, format, getDay, isEqual, isToday, parse, startOfMonth, startOfToday } from "date-fns";
@@ -10,18 +10,10 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useCloset } from "@/src/app/providers/closetContext";
 import PageSkeleton from "@/src/app/components/page-skeleton";
 
-interface CalendarEntry {
-  id: string;
-  outfit_id: string;
-  date: string;
-}
-
 export default function Calendar() {
   const user = useUser();
-  const { cards, outfits } = useCloset();
+  const { cards, outfits, updateOutfitDate } = useCloset();
 
-  const [calendarEntries, setCalendarEntries] = useState<CalendarEntry[]>([]);
-  const [currentEntry, setCurrentEntry] = useState<CalendarEntry | null>(null);
   const [fit, setFit] = useState<string | null>(null);
   const [addButton, setAddButton] = useState(false);
 
@@ -45,57 +37,21 @@ export default function Calendar() {
     setCurrentMonth(format(firstDayPrevMonth, 'MMM-yyyy'));
   };
 
-  // Fetch calendar entries + realtime
-  useEffect(() => {
-    if (!user) return;
-
-    const fetchEntries = async () => {
-      const { data } = await supabase
-        .from('calendar_entries')
-        .select('id, outfit_id, date')
-        .eq('user_id', user.id);
-      if (data) setCalendarEntries(data);
-    };
-
-    fetchEntries();
-
-    const channel = supabase
-      .channel(`calendar-${user.id}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'calendar_entries', filter: `user_id=eq.${user.id}` }, fetchEntries)
-      .subscribe();
-
-    return () => { supabase.removeChannel(channel); };
-  }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Resolve the entry for the selected day
-  useEffect(() => {
-    const formattedDay = format(selectedDay, 'MMddyy');
-    setCurrentEntry(calendarEntries.find(e => e.date === formattedDay) ?? null);
-  }, [selectedDay, calendarEntries]);
+  const formattedDay = format(selectedDay, 'MMddyy');
+  const currentOutfit = outfits.find(o => o.Date === formattedDay) ?? null;
 
   const handleOutfit = async (outfitId: string) => {
     if (!user) return;
-    const date = format(selectedDay, 'MMddyy');
-    const tempId = crypto.randomUUID();
-    setCalendarEntries(prev => [...prev, { id: tempId, outfit_id: outfitId, date }]);
+    updateOutfitDate(outfitId, formattedDay);
     setAddButton(false);
-
-    const { data } = await supabase.from('calendar_entries').insert({
-      user_id: user.id,
-      outfit_id: outfitId,
-      date,
-    }).select('id, outfit_id, date').single();
-
-    if (data) {
-      setCalendarEntries(prev => prev.map(e => e.id === tempId ? data : e));
-    }
+    setFit(null);
+    await supabase.from('outfits').update({ date: formattedDay }).eq('id', outfitId);
   };
 
   const handleClearDate = async () => {
-    if (!currentEntry) return;
-    const entryId = currentEntry.id;
-    setCalendarEntries(prev => prev.filter(e => e.id !== entryId));
-    await supabase.from('calendar_entries').delete().eq('id', entryId);
+    if (!currentOutfit) return;
+    updateOutfitDate(currentOutfit.id, null);
+    await supabase.from('outfits').update({ date: null }).eq('id', currentOutfit.id);
   };
 
   if (!user) return <PageSkeleton />;
@@ -193,7 +149,7 @@ export default function Calendar() {
 
         {/* Day panel */}
         <div className="w-full lg:flex-1 bg-white rounded-2xl shadow-sm border border-mocha-200/60 p-6 sm:p-8">
-          {currentEntry ? (
+          {currentOutfit ? (
             <div>
               <p className="text-[10px] tracking-[0.5em] uppercase text-mocha-400 mb-2">
                 Outfit for
@@ -202,14 +158,12 @@ export default function Calendar() {
                 {format(selectedDay, 'MMMM d, yyyy')}
               </p>
               <div className="h-px bg-mocha-200 mb-6" />
-              {outfits.find(o => o.id === currentEntry.outfit_id) && (
-                <OutfitCard
-                  userID={user.id}
-                  outfit={outfits.find(o => o.id === currentEntry.outfit_id)!}
-                  clothes={cards}
-                  onClearDate={handleClearDate}
-                />
-              )}
+              <OutfitCard
+                userID={user.id}
+                outfit={currentOutfit}
+                clothes={cards}
+                onClearDate={handleClearDate}
+              />
             </div>
           ) : (
             <div className="h-full min-h-48 flex flex-col justify-center items-center gap-5">
@@ -239,7 +193,7 @@ export default function Calendar() {
           <div className="relative w-full max-w-2xl bg-off-white-100 rounded-3xl p-6 sm:p-8 shadow-2xl flex flex-col gap-6">
 
             <button
-              onClick={() => setAddButton(false)}
+              onClick={() => { setAddButton(false); setFit(null); }}
               className="absolute top-5 right-5 w-8 h-8 flex items-center justify-center rounded-full border border-mocha-200 text-mocha-400 hover:border-mocha-400 hover:text-mocha-500 transition-all duration-200"
               aria-label="Close"
             >

@@ -1,6 +1,8 @@
 'use server'
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { cookies } from "next/headers";
+import { createServerClient } from "@supabase/ssr";
 import {
   ClothingAnalysis,
   CLOTHING_TYPES,
@@ -24,6 +26,18 @@ export async function analyzeClothing(
   imageBase64: string,
   mimeType: string,
 ): Promise<ClothingAnalysis> {
+  const cookieStore = cookies();
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    { cookies: { getAll: () => cookieStore.getAll() } },
+  );
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return DEFAULT_ANALYSIS;
+
+  const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+  if (!ALLOWED_MIME_TYPES.includes(mimeType)) return DEFAULT_ANALYSIS;
+
   const API_KEY = process.env.GEMENI_PUBLIC_API_KEY;
   if (!API_KEY) return DEFAULT_ANALYSIS;
 
@@ -50,7 +64,9 @@ Return ONLY valid JSON, no markdown, no explanation.`;
       { inlineData: { data: imageBase64, mimeType } },
     ]);
 
-    const text = result.response.text();
+    const raw = result.response.text();
+    // Gemini sometimes wraps the response in ```json ... ``` despite instructions
+    const text = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
     const parsed = JSON.parse(text);
 
     // Validate type
@@ -81,7 +97,12 @@ Return ONLY valid JSON, no markdown, no explanation.`;
       },
     };
   } catch (error) {
-    console.error('AI metadata scan failed, using defaults:', error);
+    const reason = error instanceof Error ? error.message : String(error);
+    console.error('[fit:ai-analysis]', JSON.stringify({
+      step: 'ai_analysis',
+      error: reason,
+      ts: new Date().toISOString(),
+    }));
     return DEFAULT_ANALYSIS;
   }
 }

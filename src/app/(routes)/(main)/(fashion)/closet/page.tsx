@@ -12,6 +12,7 @@ import { useCloset } from "@/src/app/providers/closetContext";
 import { Pencil } from "lucide-react";
 import PageSkeleton from "@/src/app/components/page-skeleton";
 import { analyzeClothing } from "@/src/app/api/analyze-clothing";
+import { logUploadError } from "@/src/app/api/log-error";
 import type { ClothingAnalysis } from "@/src/app/types/clothing";
 
 
@@ -35,6 +36,7 @@ export default function Closet() {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState('');
+  const [pickerError, setPickerError] = useState('');
 
 
   const fileTypes = ["JPG", "JPEG", "PNG", "GIF"];
@@ -43,20 +45,41 @@ export default function Closet() {
   const handleBackgroundRemoval = async (): Promise<File> => {
     if (!file) throw new Error('No file selected');
 
+    const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      throw new Error('Please upload a valid image file (JPG, PNG, GIF, or WEBP).');
+    }
+
+    const MAX_SIZE_MB = 10;
+    if (file.size > MAX_SIZE_MB * 1024 * 1024) {
+      throw new Error(`Image must be under ${MAX_SIZE_MB}MB.`);
+    }
+
     const { removeBackground } = await import('@imgly/background-removal');
 
-    const imageBlob = await removeBackground(file, {
-      model: 'isnet_quint8',
-      output: {
-        format: 'image/png',
-        quality: 1.0,
-      },
-      progress: () => {
-        setLoadingStep('Removing background…');
-      },
-    });
-
-    return new File([imageBlob], 'processed-image.png', { type: 'image/png' });
+    try {
+      const imageBlob = await removeBackground(file, {
+        model: 'isnet_quint8',
+        output: {
+          format: 'image/png',
+          quality: 1.0,
+        },
+        progress: () => {
+          setLoadingStep('Removing background…');
+        },
+      });
+      return new File([imageBlob], 'processed-image.png', { type: 'image/png' });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      logUploadError({
+        step: 'bg_removal',
+        error: message,
+        fileSize: file.size,
+        fileType: file.type,
+        userId: user?.id,
+      }).catch(() => {});
+      throw new Error('Background removal failed. Please try a different image.');
+    }
   };
 
   const createClothing = async (e: React.FormEvent) => {
@@ -71,6 +94,16 @@ export default function Closet() {
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Something went wrong.';
       setLoadingStep(message);
+      // Fire-and-forget — doesn't block the error UI.
+      // bg_removal, upload, and db_insert steps log themselves with their own context.
+      // This catches anything that slipped through (e.g. server action serialization errors).
+      logUploadError({
+        step: 'unknown',
+        error: message,
+        fileSize: file?.size,
+        fileType: file?.type,
+        userId: user?.id,
+      }).catch(() => {});
       await new Promise(res => setTimeout(res, 3000));
     } finally {
       setLoading(false);
@@ -82,26 +115,49 @@ export default function Closet() {
     const imageID = v4();
     const path = `${user!.id}/${imageID}`;
 
-    // Convert file to base64 for AI scan (before upload to avoid redundant fetch)
+    // Downscale the processed image before base64-encoding it for Gemini.
+    // The full-resolution PNG (lossless) can be 3× larger than the original JPEG,
+    // pushing the server action payload past Netlify's 6MB function body limit.
+    // 1024px is more than enough for clothing analysis.
     const base64 = await new Promise<string>((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve((reader.result as string).split(',')[1]);
-      reader.readAsDataURL(processedFile);
+      const img = new Image();
+      img.onload = () => {
+        const MAX = 1024;
+        const scale = Math.min(1, MAX / Math.max(img.width, img.height));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+        resolve(dataUrl.split(',')[1]);
+      };
+      img.src = URL.createObjectURL(processedFile);
     });
 
     // Upload to storage and AI scan in parallel
     setLoadingStep('Uploading & analyzing…');
-    const [, analysis] = await Promise.all([
+    const [uploadResult, analysis] = await Promise.all([
       supabase.storage.from('clothing-images').upload(path, processedFile),
-      analyzeClothing(base64, processedFile.type || 'image/png'),
+      analyzeClothing(base64, 'image/jpeg'),
     ]);
+
+    if (uploadResult.error) {
+      logUploadError({
+        step: 'upload',
+        error: uploadResult.error.message,
+        fileSize: processedFile.size,
+        fileType: processedFile.type,
+        userId: user!.id,
+      }).catch(() => {});
+      throw new Error('Upload failed. Please try again.');
+    }
 
     const { data: { publicUrl } } = supabase.storage.from('clothing-images').getPublicUrl(path);
     await addClothing(publicUrl, imageID, analysis);
   };
 
   const addClothing = async (imgUrl: string, imageID: string, analysis: ClothingAnalysis) => {
-    const { data } = await supabase.from('clothes').insert({
+    const { data, error } = await supabase.from('clothes').insert({
       user_id: user!.id,
       name: analysis.name,
       color: analysis.color,
@@ -116,6 +172,15 @@ export default function Closet() {
       vibe: analysis.metadata.vibe,
       size: analysis.metadata.size,
     }).select().single();
+
+    if (error) {
+      logUploadError({
+        step: 'db_insert',
+        error: error.message,
+        userId: user!.id,
+      }).catch(() => {});
+      throw new Error('Could not save your item. Please try again.');
+    }
 
     if (data) {
       const clothing = new Clothing(
@@ -289,13 +354,20 @@ export default function Closet() {
                 <div className="border border-dashed border-mocha-300 rounded-2xl p-5">
                   <FileUploader
                     multiple={false}
-                    handleChange={(e: File) => setFile(e)}
+                    handleChange={(e: File) => { setPickerError(''); setFile(e); }}
+                    onSizeError={() => setPickerError('Image must be under 10MB.')}
                     types={fileTypes}
                     name="file"
                     label="Upload or drop a photo here"
+                    maxSize={10}
                   />
                 </div>
-                {file && (
+                {pickerError && (
+                  <p className="mt-2 text-[10px] tracking-[0.25em] text-red-400">
+                    {pickerError}
+                  </p>
+                )}
+                {!pickerError && file && (
                   <p className="mt-2 text-[10px] tracking-[0.25em] text-mocha-400 truncate">
                     {file.name}
                   </p>

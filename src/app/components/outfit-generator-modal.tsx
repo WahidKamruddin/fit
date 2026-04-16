@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { supabase } from '@/src/app/supabaseConfig/client';
-import { generateOutfit } from '@/src/app/api/generate-outfit';
-import type { ClothingCard } from '@/src/app/api/generate-outfit';
+import { generateOutfit } from '@/src/lib/generate-outfit';
+import type { ClothingCard } from '@/src/lib/generate-outfit';
 import {
   VIBE_OPTIONS, STYLE_OPTIONS, WEATHER_OPTIONS,
 } from '@/src/app/types/clothing';

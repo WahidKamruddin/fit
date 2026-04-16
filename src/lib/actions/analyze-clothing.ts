@@ -9,8 +9,8 @@ import {
   WEATHER_OPTIONS,
   VIBE_OPTIONS,
   STYLE_OPTIONS,
-} from "../types/clothing";
-import type { ClothingType } from "../types/clothing";
+} from "../../app/types/clothing";
+import type { ClothingType } from "../../app/types/clothing";
 
 const DEFAULT_ANALYSIS: ClothingAnalysis = {
   name: 'Untitled',

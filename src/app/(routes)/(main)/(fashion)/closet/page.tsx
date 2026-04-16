@@ -11,8 +11,8 @@ import { v4 } from "uuid";
 import { useCloset } from "@/src/app/providers/closetContext";
 import { Pencil } from "lucide-react";
 import PageSkeleton from "@/src/app/components/page-skeleton";
-import { analyzeClothing } from "@/src/app/api/analyze-clothing";
-import { logUploadError } from "@/src/app/api/log-error";
+import { analyzeClothing } from "@/src/lib/actions/analyze-clothing";
+import { logUploadError } from "@/src/lib/actions/log-error";
 import type { ClothingAnalysis } from "@/src/app/types/clothing";
 
 

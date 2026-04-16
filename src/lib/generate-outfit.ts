@@ -1,6 +1,6 @@
-import Clothing from '../classes/clothes';
-import type { Weather, Vibe, Style } from '../types/clothing';
-import type { OutfitPreferences, GeneratedOutfit, GeneratedOutfitItem } from '../types/outfit';
+import Clothing from '../app/classes/clothes';
+import type { Weather, Vibe, Style } from '../app/types/clothing';
+import type { OutfitPreferences, GeneratedOutfit, GeneratedOutfitItem } from '../app/types/outfit';
 
 export interface ClothingCard {
   clothing: Clothing;

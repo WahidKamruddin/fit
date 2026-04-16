@@ -8,7 +8,7 @@ export interface OutfitRow {
   bottom: string | null;
   shoes: string | null;
   accessories: string[];
-  date: string | null;
+  dates: string[];
   created_at: string;
 }
 
@@ -19,7 +19,7 @@ export interface OutfitDoc {
   Bottom: string;
   Shoes: string | null;
   Accessories: string[];
-  Date: string | null;
+  Dates: string[];
 }
 
 export interface OutfitPreferences {

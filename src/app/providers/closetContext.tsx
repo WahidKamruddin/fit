@@ -18,7 +18,7 @@ interface OutfitDoc {
   Bottom: string;
   Shoes: string | null;
   Accessories: string[];
-  Date: string | null;
+  Dates: string[];
 }
 
 interface ClosetContextValue {
@@ -29,7 +29,8 @@ interface ClosetContextValue {
   addCard: (card: ClothingCard) => void;
   addOutfit: (outfit: OutfitDoc) => void;
   removeOutfit: (id: string) => void;
-  updateOutfitDate: (id: string, date: string | null) => void;
+  addOutfitDate: (id: string, date: string) => void;
+  removeOutfitDate: (id: string, date: string) => void;
 }
 
 export const ClosetContext = createContext<ClosetContextValue>({
@@ -40,7 +41,8 @@ export const ClosetContext = createContext<ClosetContextValue>({
   addCard: () => {},
   addOutfit: () => {},
   removeOutfit: () => {},
-  updateOutfitDate: () => {},
+  addOutfitDate: () => {},
+  removeOutfitDate: () => {},
 });
 
 export function ClosetProvider({ children }: { children: React.ReactNode }) {
@@ -96,7 +98,7 @@ export function ClosetProvider({ children }: { children: React.ReactNode }) {
           Bottom: row.bottom,
           Shoes: row.shoes ?? null,
           Accessories: row.accessories ?? [],
-          Date: row.date,
+          Dates: row.dates ?? [],
         }));
         setOutfits(outfitArr);
       }
@@ -132,8 +134,12 @@ export function ClosetProvider({ children }: { children: React.ReactNode }) {
     setOutfits((prev) => prev.filter((o) => o.id !== id));
   };
 
-  const updateOutfitDate = (id: string, date: string | null) => {
-    setOutfits((prev) => prev.map((o) => o.id === id ? { ...o, Date: date } : o));
+  const addOutfitDate = (id: string, date: string) => {
+    setOutfits((prev) => prev.map((o) => o.id === id ? { ...o, Dates: [...o.Dates, date] } : o));
+  };
+
+  const removeOutfitDate = (id: string, date: string) => {
+    setOutfits((prev) => prev.map((o) => o.id === id ? { ...o, Dates: o.Dates.filter(d => d !== date) } : o));
   };
 
   const removeCard = (id: string) => {
@@ -145,7 +151,7 @@ export function ClosetProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <ClosetContext.Provider value={{ cards, outfits, hasClothes, removeCard, addCard, addOutfit, removeOutfit, updateOutfitDate }}>
+    <ClosetContext.Provider value={{ cards, outfits, hasClothes, removeCard, addCard, addOutfit, removeOutfit, addOutfitDate, removeOutfitDate }}>
       {children}
     </ClosetContext.Provider>
   );

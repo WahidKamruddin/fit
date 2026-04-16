@@ -16,7 +16,7 @@ interface OutfitDoc {
   Bottom: string;
   Shoes: string | null;
   Accessories: string[];
-  Date: string | null;
+  Dates: string[];
 }
 
 interface OutfitCardProps {

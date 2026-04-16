@@ -9,10 +9,11 @@ import { IoMdAdd } from "react-icons/io";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useCloset } from "@/src/app/providers/closetContext";
 import PageSkeleton from "@/src/app/components/page-skeleton";
+import { capitalize } from "@/src/app/lib/utils";
 
 export default function Calendar() {
   const user = useUser();
-  const { cards, outfits, updateOutfitDate } = useCloset();
+  const { cards, outfits, addOutfitDate, removeOutfitDate } = useCloset();
 
   const [fit, setFit] = useState<string | null>(null);
   const [addButton, setAddButton] = useState(false);
@@ -38,25 +39,29 @@ export default function Calendar() {
   };
 
   const formattedDay = format(selectedDay, 'MMddyy');
-  const currentOutfit = outfits.find(o => o.Date === formattedDay) ?? null;
+  const currentOutfit = outfits.find(o => o.Dates.includes(formattedDay)) ?? null;
 
   const handleOutfit = async (outfitId: string) => {
     if (!user) return;
-    updateOutfitDate(outfitId, formattedDay);
+    const outfit = outfits.find(o => o.id === outfitId);
+    if (!outfit) return;
+    const newDates = [...outfit.Dates, formattedDay];
+    addOutfitDate(outfitId, formattedDay);
     setAddButton(false);
     setFit(null);
-    await supabase.from('outfits').update({ date: formattedDay }).eq('id', outfitId);
+    await supabase.from('outfits').update({ dates: newDates }).eq('id', outfitId).eq('user_id', user.id);
   };
 
   const handleClearDate = async () => {
     if (!currentOutfit) return;
-    updateOutfitDate(currentOutfit.id, null);
-    await supabase.from('outfits').update({ date: null }).eq('id', currentOutfit.id);
+    const newDates = currentOutfit.Dates.filter(d => d !== formattedDay);
+    removeOutfitDate(currentOutfit.id, formattedDay);
+    await supabase.from('outfits').update({ dates: newDates }).eq('id', currentOutfit.id).eq('user_id', user.id);
   };
 
   if (!user) return <PageSkeleton />;
 
-  const firstName = (user.user_metadata?.full_name ?? user.user_metadata?.name)?.split(' ')[0] ?? 'Your';
+  const firstName = capitalize((user.user_metadata?.full_name ?? user.user_metadata?.name)?.split(' ')[0] ?? 'Your');
 
   return (
     <div className="min-h-screen w-full pt-16 bg-off-white-100">

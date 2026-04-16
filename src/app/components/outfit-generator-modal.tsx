@@ -92,7 +92,7 @@ export default function OutfitGeneratorModal({ userId, cards, onClose, onSave }:
       bottom:     generated.bottom.id,
       shoes:      generated.shoes?.id ?? null,
       accessories: generated.accessories.map(a => a.id),
-      date:       null,
+      dates:      [],
     }).select().single();
 
     if (data) {
@@ -103,7 +103,7 @@ export default function OutfitGeneratorModal({ userId, cards, onClose, onSave }:
         Bottom:      data.bottom ?? '',
         Shoes:       data.shoes ?? null,
         Accessories: data.accessories ?? [],
-        Date:        data.date ?? null,
+        Dates:       data.dates ?? [],
       });
     }
     setSaving(false);

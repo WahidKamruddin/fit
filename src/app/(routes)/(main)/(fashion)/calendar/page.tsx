@@ -53,7 +53,7 @@ export default function Calendar() {
   };
 
   const handleClearDate = async () => {
-    if (!currentOutfit) return;
+    if (!currentOutfit || !user) return;
     const newDates = currentOutfit.Dates.filter(d => d !== formattedDay);
     removeOutfitDate(currentOutfit.id, formattedDay);
     await supabase.from('outfits').update({ dates: newDates }).eq('id', currentOutfit.id).eq('user_id', user.id);

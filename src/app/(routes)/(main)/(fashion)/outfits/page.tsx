@@ -66,7 +66,7 @@ export default function Outfit() {
         Bottom: data.bottom,
         Shoes: data.shoes ?? null,
         Accessories: data.accessories ?? [],
-        Date: data.date,
+        Dates: data.dates ?? [],
       });
     }
   };

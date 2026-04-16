@@ -38,7 +38,7 @@ const Card = ({ userID, aClothing, edit, select, handleOuterWear, onLongPress }:
   const toggleFavorite = async () => {
     const newStarred = !starred;
     setStarred(newStarred);
-    await supabase.from('clothes').update({ starred: newStarred }).eq('id', aClothing.id);
+    await supabase.from('clothes').update({ starred: newStarred }).eq('id', aClothing.id).eq('user_id', userID);
   };
 
   const affectedOutfits = outfits.filter(o =>
@@ -51,14 +51,14 @@ const Card = ({ userID, aClothing, edit, select, handleOuterWear, onLongPress }:
 
   const deleteClothing = async () => {
     if (affectedOutfits.length > 0) {
-      await supabase.from('outfits').delete().in('id', affectedOutfits.map(o => o.id));
+      await supabase.from('outfits').delete().in('id', affectedOutfits.map(o => o.id)).eq('user_id', userID);
       affectedOutfits.forEach(o => removeOutfit(o.id));
     }
     removeCard(aClothing.id);
     if (aClothing.imageId) {
       await supabase.storage.from('clothing-images').remove([`${userID}/${aClothing.imageId}`]);
     }
-    await supabase.from('clothes').delete().eq('id', aClothing.id);
+    await supabase.from('clothes').delete().eq('id', aClothing.id).eq('user_id', userID);
     setConfirmOpen(false);
   };
 

@@ -46,7 +46,7 @@ const OutfitCard = ({ userID, outfit, clothes, canEdit, onClearDate, onLongPress
   const deleteOutfit = async () => {
     if (!userID) return;
     removeOutfit(outfit.id);
-    await supabase.from('outfits').delete().eq('id', outfit.id);
+    await supabase.from('outfits').delete().eq('id', outfit.id).eq('user_id', userID);
     setConfirmOpen(false);
   };
 

@@ -12,6 +12,7 @@ import { Pencil, Sparkles } from "lucide-react";
 import PageSkeleton from "@/src/app/components/page-skeleton";
 import OutfitGeneratorModal from "@/src/app/components/outfit-generator-modal";
 import type { OutfitDoc } from "@/src/app/types/outfit";
+import { capitalize } from "@/src/app/lib/utils";
 
 
 export default function Outfit() {
@@ -102,7 +103,7 @@ export default function Outfit() {
 
   if (!user) return <PageSkeleton />;
 
-  const firstName = (user.user_metadata?.full_name ?? user.user_metadata?.name)?.split(' ')[0] ?? 'Your';
+  const firstName = capitalize((user.user_metadata?.full_name ?? user.user_metadata?.name)?.split(' ')[0] ?? 'Your');
 
   return (
     <div className="h-screen flex flex-col overflow-hidden pt-16 bg-off-white-100">

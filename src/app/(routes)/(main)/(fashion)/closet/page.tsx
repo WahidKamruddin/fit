@@ -14,6 +14,7 @@ import PageSkeleton from "@/src/app/components/page-skeleton";
 import { analyzeClothing } from "@/src/lib/actions/analyze-clothing";
 import { logUploadError } from "@/src/lib/actions/log-error";
 import type { ClothingAnalysis } from "@/src/app/types/clothing";
+import { capitalize } from "@/src/app/lib/utils";
 
 
 export default function Closet() {
@@ -203,7 +204,7 @@ export default function Closet() {
 
   if (!user) return <PageSkeleton />;
 
-  const firstName = (user.user_metadata?.full_name ?? user.user_metadata?.name)?.split(' ')[0] ?? 'Your';
+  const firstName = capitalize((user.user_metadata?.full_name ?? user.user_metadata?.name)?.split(' ')[0] ?? 'Your');
 
   const filters = [
     { label: 'All',         active: all,          onClick: filterAll         },

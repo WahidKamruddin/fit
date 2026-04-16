@@ -6,6 +6,7 @@ import { useUser, logOut } from "../auth/auth"
 import { usePathname, useRouter } from "next/navigation"
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
 import { Settings, LogOut, Menu, X } from "lucide-react"
+import { capitalize } from "@/src/app/lib/utils"
 
 const navGroups = [
   {
@@ -67,7 +68,7 @@ export function AppNavbar() {
 
   const userName  = user?.user_metadata?.full_name ?? user?.user_metadata?.name ?? "User"
   const avatar    = user?.user_metadata?.avatar_url ?? ""
-  const firstName = userName.split(' ')[0]
+  const firstName = capitalize(userName.split(' ')[0])
   const initials  = userName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()
 
   // Which group is "active" (contains the current route)

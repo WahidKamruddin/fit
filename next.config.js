@@ -33,6 +33,13 @@ const nextConfig = {
             test: /node_modules[/\\]onnxruntime-web[/\\]dist[/\\].+\.mjs$/,
             parser: { url: false },
         });
+        config.ignoreWarnings = [
+            ...(config.ignoreWarnings || []),
+            {
+                module: /onnxruntime-web\/dist\/(ort\.min|ort\.webgpu\.min)\.js/,
+                message: /Critical dependency: require function is used in a way/,
+            },
+        ];
         return config;
     },
 }

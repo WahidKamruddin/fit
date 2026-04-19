@@ -291,7 +291,11 @@ export default function Closet() {
       </div>
 
       {/* ── Clothing grid ─────────────────────────────────────── */}
-      <div className="flex-1 overflow-y-auto mt-8 px-4 sm:px-8 lg:px-20 pb-8 animate-fade-in" style={{ animationDelay: '0.45s' }}>
+      <div
+        className="flex-1 overflow-y-auto mt-8 px-4 sm:px-8 lg:px-20 pb-8 animate-fade-in"
+        style={{ animationDelay: '0.45s' }}
+        onClick={e => { if (e.target === e.currentTarget) setEdit(false); }}
+      >
         {hasClothes ? (
           <CardList
             userID={user.id}
@@ -300,6 +304,7 @@ export default function Closet() {
             edit={edit}
             select={false}
             onLongPress={() => setEdit(true)}
+            onBackgroundClick={() => setEdit(false)}
           />
         ) : (
           /* Empty state */

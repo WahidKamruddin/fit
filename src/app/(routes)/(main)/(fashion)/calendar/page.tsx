@@ -6,7 +6,7 @@ import { supabase } from "@/src/app/supabaseConfig/client";
 import { add, eachDayOfInterval, endOfMonth, format, getDay, isEqual, isToday, parse, startOfMonth, startOfToday } from "date-fns";
 import OutfitCard from "@/src/app/components/outfit-card";
 import { IoMdAdd } from "react-icons/io";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, Pencil } from "lucide-react";
 import { useCloset } from "@/src/app/providers/closetContext";
 import PageSkeleton from "@/src/app/components/page-skeleton";
 import { capitalize } from "@/src/app/lib/utils";
@@ -17,6 +17,7 @@ export default function Calendar() {
 
   const [fit, setFit] = useState<string | null>(null);
   const [addButton, setAddButton] = useState(false);
+  const [editMode, setEditMode] = useState(false);
 
   const today = startOfToday();
   const [selectedDay, setSelectedDay] = useState(today);
@@ -39,7 +40,21 @@ export default function Calendar() {
   };
 
   const formattedDay = format(selectedDay, 'MMddyy');
-  const currentOutfit = outfits.find(o => o.Dates.includes(formattedDay)) ?? null;
+
+  // Exit edit mode whenever the selected day changes
+  const handleSelectDay = (day: Date) => {
+    setSelectedDay(day);
+    setEditMode(false);
+  };
+
+  // All outfits assigned to the selected day
+  const dayOutfits = outfits.filter(o => o.Dates.includes(formattedDay));
+
+  // Set of all date strings that have at least one outfit — used for dot indicators
+  const daysWithOutfits = new Set(outfits.flatMap(o => o.Dates));
+
+  // Outfits not yet assigned to this day (for the picker modal)
+  const unassignedOutfits = outfits.filter(o => !o.Dates.includes(formattedDay));
 
   const handleOutfit = async (outfitId: string) => {
     if (!user) return;
@@ -52,11 +67,13 @@ export default function Calendar() {
     await supabase.from('outfits').update({ dates: newDates }).eq('id', outfitId).eq('user_id', user.id);
   };
 
-  const handleClearDate = async () => {
-    if (!currentOutfit || !user) return;
-    const newDates = currentOutfit.Dates.filter(d => d !== formattedDay);
-    removeOutfitDate(currentOutfit.id, formattedDay);
-    await supabase.from('outfits').update({ dates: newDates }).eq('id', currentOutfit.id).eq('user_id', user.id);
+  const handleClearDate = async (outfitId: string) => {
+    if (!user) return;
+    const outfit = outfits.find(o => o.id === outfitId);
+    if (!outfit) return;
+    const newDates = outfit.Dates.filter(d => d !== formattedDay);
+    removeOutfitDate(outfitId, formattedDay);
+    await supabase.from('outfits').update({ dates: newDates }).eq('id', outfitId).eq('user_id', user.id);
   };
 
   if (!user) return <PageSkeleton />;
@@ -126,49 +143,104 @@ export default function Calendar() {
 
           {/* Day grid */}
           <div className="grid grid-cols-7">
-            {days.map((day, dayIdx) => (
-              <div
-                key={day.toString()}
-                className={`${dayIdx === 0 ? colStartClasses[getDay(day)] : ''} py-1 flex justify-center`}
-              >
-                <button
-                  type="button"
-                  onClick={() => setSelectedDay(day)}
-                  className={[
-                    'h-9 w-9 flex items-center justify-center rounded-full text-sm transition-all duration-200',
-                    isEqual(day, selectedDay) && isToday(day)
-                      ? 'bg-mocha-400 text-white font-semibold'
-                      : isEqual(day, selectedDay)
-                      ? 'bg-mocha-500 text-white font-semibold'
-                      : isToday(day)
-                      ? 'text-mocha-400 font-semibold hover:bg-mocha-100'
-                      : 'text-mocha-500 hover:bg-mocha-100',
-                  ].join(' ')}
+            {days.map((day, dayIdx) => {
+              const dayKey = format(day, 'MMddyy');
+              const hasOutfit = daysWithOutfits.has(dayKey);
+              const isSelected = isEqual(day, selectedDay);
+              return (
+                <div
+                  key={day.toString()}
+                  className={`${dayIdx === 0 ? colStartClasses[getDay(day)] : ''} py-1 flex flex-col items-center gap-0.5`}
                 >
-                  <time dateTime={format(day, 'MM-dd-yyyy')}>{format(day, 'd')}</time>
-                </button>
-              </div>
-            ))}
+                  <button
+                    type="button"
+                    onClick={() => handleSelectDay(day)}
+                    className={[
+                      'h-9 w-9 flex items-center justify-center rounded-full text-sm transition-all duration-200',
+                      isSelected && isToday(day)
+                        ? 'bg-mocha-400 text-white font-semibold'
+                        : isSelected
+                        ? 'bg-mocha-500 text-white font-semibold'
+                        : isToday(day)
+                        ? 'text-mocha-400 font-semibold hover:bg-mocha-100'
+                        : 'text-mocha-500 hover:bg-mocha-100',
+                    ].join(' ')}
+                  >
+                    <time dateTime={format(day, 'MM-dd-yyyy')}>{format(day, 'd')}</time>
+                  </button>
+                  {/* Outfit indicator dot */}
+                  <span
+                    className={`w-1 h-1 rounded-full transition-all duration-200 ${
+                      hasOutfit
+                        ? isSelected
+                          ? 'bg-white/50'
+                          : 'bg-mocha-300'
+                        : 'invisible'
+                    }`}
+                  />
+                </div>
+              );
+            })}
           </div>
         </div>
 
         {/* Day panel */}
         <div className="w-full lg:flex-1 bg-white rounded-2xl shadow-sm border border-mocha-200/60 p-6 sm:p-8">
-          {currentOutfit ? (
-            <div>
-              <p className="text-[10px] tracking-[0.5em] uppercase text-mocha-400 mb-2">
-                Outfit for
-              </p>
-              <p className="font-cormorant text-2xl font-light text-mocha-500 mb-6">
-                {format(selectedDay, 'MMMM d, yyyy')}
-              </p>
+          {dayOutfits.length > 0 ? (
+            <div className="flex flex-col h-full">
+              <div className="flex items-start justify-between mb-2">
+                <div>
+                  <p className="text-[10px] tracking-[0.5em] uppercase text-mocha-400 mb-2">
+                    {dayOutfits.length === 1 ? 'Outfit' : `${dayOutfits.length} Outfits`} for
+                  </p>
+                  <p className="font-cormorant text-2xl font-light text-mocha-500">
+                    {format(selectedDay, 'MMMM d, yyyy')}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 mt-1">
+                  <button
+                    onClick={() => setAddButton(true)}
+                    className="flex items-center gap-1.5 px-4 py-2 border border-mocha-200 text-mocha-400 text-[10px] tracking-[0.3em] uppercase rounded-full hover:border-mocha-400 hover:text-mocha-500 transition-all duration-200 flex-shrink-0"
+                  >
+                    <IoMdAdd size={12} />
+                    Add
+                  </button>
+                  <button
+                    onClick={() => setEditMode(v => !v)}
+                    className={`flex items-center gap-1.5 px-4 py-2 text-[10px] tracking-[0.3em] uppercase rounded-full border transition-all duration-200 flex-shrink-0 ${
+                      editMode
+                        ? 'bg-mocha-500 text-mocha-100 border-mocha-500'
+                        : 'border-mocha-200 text-mocha-400 hover:border-mocha-400 hover:text-mocha-500'
+                    }`}
+                  >
+                    <Pencil size={11} />
+                    {editMode ? 'Done' : 'Edit'}
+                  </button>
+                </div>
+              </div>
               <div className="h-px bg-mocha-200 mb-6" />
-              <OutfitCard
-                userID={user.id}
-                outfit={currentOutfit}
-                clothes={cards}
-                onClearDate={handleClearDate}
-              />
+              <div
+                className="overflow-x-auto -mx-1 px-1"
+                onClick={e => { if (e.target === e.currentTarget) setEditMode(false); }}
+              >
+                <div
+                  className="flex gap-4 pb-2 pt-3"
+                  onClick={e => { if (e.target === e.currentTarget) setEditMode(false); }}
+                >
+                  {dayOutfits.map(outfit => (
+                    <div key={outfit.id} className="flex-shrink-0">
+                      <OutfitCard
+                        userID={user.id}
+                        outfit={outfit}
+                        clothes={cards}
+                        canEdit={editMode}
+                        onLongPress={() => setEditMode(true)}
+                        onClearDate={editMode ? () => handleClearDate(outfit.id) : undefined}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           ) : (
             <div className="h-full min-h-48 flex flex-col justify-center items-center gap-5">
@@ -215,9 +287,9 @@ export default function Calendar() {
             </div>
 
             <div className="h-64 sm:h-80 overflow-y-auto rounded-2xl border border-mocha-200">
-              {outfits.length > 0 ? (
+              {unassignedOutfits.length > 0 ? (
                 <div className="flex flex-wrap justify-center gap-3 p-4">
-                  {outfits.map((something) => (
+                  {unassignedOutfits.map((something) => (
                     <button
                       key={something.id}
                       onClick={() => setFit(something.id)}
@@ -228,8 +300,10 @@ export default function Calendar() {
                   ))}
                 </div>
               ) : (
-                <div className="h-full flex items-center justify-center">
-                  <p className="text-[10px] tracking-[0.4em] uppercase text-mocha-300">No outfits found</p>
+                <div className="h-full flex flex-col items-center justify-center gap-2">
+                  <p className="text-[10px] tracking-[0.4em] uppercase text-mocha-300">
+                    {outfits.length === 0 ? 'No outfits found' : 'All outfits already planned for this day'}
+                  </p>
                 </div>
               )}
             </div>

@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useUser } from '@/src/app/auth/auth';
 import { supabase } from '@/src/app/supabaseConfig/client';
 import { generateOutfit } from '@/src/lib/generate-outfit';
 import type { ClothingCard } from '@/src/lib/generate-outfit';
@@ -62,9 +63,20 @@ function SlotBox({ label, item }: { label: string; item?: { name: string; imageU
 }
 
 export default function OutfitGeneratorModal({ userId, cards, onClose, onSave }: Props) {
+  const user = useUser();
   const [vibes,   setVibes]   = useState<Vibe[]>([]);
   const [styles,  setStyles]  = useState<Style[]>([]);
   const [weather, setWeather] = useState<Weather[]>([]);
+
+  // Seed from preferences saved in Account settings
+  useEffect(() => {
+    if (user) {
+      const prefs = user.user_metadata?.preferences ?? {};
+      if (prefs.vibes?.length)   setVibes(prefs.vibes);
+      if (prefs.styles?.length)  setStyles(prefs.styles);
+      if (prefs.weather?.length) setWeather(prefs.weather);
+    }
+  }, [user]);
   const [result, setResult] = useState<GeneratedOutfit | { error: string } | null>(null);
   const [saving,  setSaving]  = useState(false);
 
@@ -85,7 +97,7 @@ export default function OutfitGeneratorModal({ userId, cards, onClose, onSave }:
   const handleSave = async () => {
     if (!generated) return;
     setSaving(true);
-    const { data } = await supabase.from('outfits').insert({
+    const { data, error } = await supabase.from('outfits').insert({
       user_id:    userId,
       outer_wear: generated.outerwear?.id ?? null,
       top:        generated.top.id,
@@ -94,6 +106,12 @@ export default function OutfitGeneratorModal({ userId, cards, onClose, onSave }:
       accessories: generated.accessories.map(a => a.id),
       dates:      [],
     }).select().single();
+
+    if (error) {
+      console.error('Failed to save outfit:', error.message);
+      setSaving(false);
+      return;
+    }
 
     if (data) {
       onSave({

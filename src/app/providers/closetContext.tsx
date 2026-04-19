@@ -13,6 +13,7 @@ interface ClothingCard {
 
 interface OutfitDoc {
   id: string;
+  Name?: string;
   OuterWear: string | null;
   Top: string;
   Bottom: string;
@@ -31,6 +32,9 @@ interface ClosetContextValue {
   removeOutfit: (id: string) => void;
   addOutfitDate: (id: string, date: string) => void;
   removeOutfitDate: (id: string, date: string) => void;
+  updateCardName: (id: string, name: string) => void;
+  updateOutfitName: (id: string, name: string) => void;
+  updateOutfit: (id: string, updates: Partial<OutfitDoc>) => void;
 }
 
 export const ClosetContext = createContext<ClosetContextValue>({
@@ -43,6 +47,9 @@ export const ClosetContext = createContext<ClosetContextValue>({
   removeOutfit: () => {},
   addOutfitDate: () => {},
   removeOutfitDate: () => {},
+  updateCardName: () => {},
+  updateOutfitName: () => {},
+  updateOutfit: () => {},
 });
 
 export function ClosetProvider({ children }: { children: React.ReactNode }) {
@@ -93,6 +100,7 @@ export function ClosetProvider({ children }: { children: React.ReactNode }) {
       if (outfitsData) {
         const outfitArr: OutfitDoc[] = outfitsData.map((row) => ({
           id: row.id,
+          Name: row.name ?? undefined,
           OuterWear: row.outer_wear,
           Top: row.top,
           Bottom: row.bottom,
@@ -150,8 +158,24 @@ export function ClosetProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
+  const updateCardName = (id: string, name: string) => {
+    setCards((prev) => prev.map((c) => {
+      if (c.id !== id) return c;
+      c.clothing.setFields(name);
+      return { ...c };
+    }));
+  };
+
+  const updateOutfitName = (id: string, name: string) => {
+    setOutfits((prev) => prev.map((o) => o.id === id ? { ...o, Name: name } : o));
+  };
+
+  const updateOutfit = (id: string, updates: Partial<OutfitDoc>) => {
+    setOutfits((prev) => prev.map((o) => o.id === id ? { ...o, ...updates } : o));
+  };
+
   return (
-    <ClosetContext.Provider value={{ cards, outfits, hasClothes, removeCard, addCard, addOutfit, removeOutfit, addOutfitDate, removeOutfitDate }}>
+    <ClosetContext.Provider value={{ cards, outfits, hasClothes, removeCard, addCard, addOutfit, removeOutfit, addOutfitDate, removeOutfitDate, updateCardName, updateOutfitName, updateOutfit }}>
       {children}
     </ClosetContext.Provider>
   );

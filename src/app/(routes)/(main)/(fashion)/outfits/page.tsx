@@ -48,15 +48,20 @@ export default function Outfit() {
 
   const addOutfit = async () => {
     if (!user || !top || !bottom) return;
-    const { data } = await supabase.from('outfits').insert({
+    const { data, error } = await supabase.from('outfits').insert({
       user_id: user.id,
       outer_wear: outerWear?.[1] ?? null,
       top: top[1],
       bottom: bottom[1],
       shoes: shoes?.[1] ?? null,
       accessories: accessories.map(([, id]) => id),
-      date: null,
+      dates: [],
     }).select().single();
+
+    if (error) {
+      console.error('Failed to save outfit:', error.message);
+      return;
+    }
 
     if (data) {
       addOutfitToContext({
@@ -165,9 +170,16 @@ export default function Outfit() {
       </div>
 
       {/* ── Outfit grid / empty state ────────────────────────── */}
-      <div className="flex-1 overflow-y-auto px-4 sm:px-8 lg:px-20">
+      <div
+        className="flex-1 overflow-y-auto px-4 sm:px-8 lg:px-20"
+        onClick={e => { if (e.target === e.currentTarget) setEdit(false); }}
+      >
         {outfits.length > 0 ? (
-          <div className="mt-8 pb-8 flex flex-wrap justify-center gap-6 animate-fade-in" style={{ animationDelay: '0.35s' }}>
+          <div
+            className="mt-8 pb-8 flex flex-wrap justify-center gap-6 animate-fade-in"
+            style={{ animationDelay: '0.35s' }}
+            onClick={e => { if (e.target === e.currentTarget) setEdit(false); }}
+          >
             {memoizedOutfits}
           </div>
         ) : (

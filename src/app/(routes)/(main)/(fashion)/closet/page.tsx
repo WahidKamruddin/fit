@@ -27,6 +27,7 @@ export default function Closet() {
   const [bottoms, setBottoms] = useState(false);
   const [shoes, setShoes] = useState(false);
   const [accessories, setAccessories] = useState(false);
+  const [starred, setStarred] = useState(false);
 
   // Fetch data states
   const { cards, hasClothes, addCard } = useCloset();
@@ -203,6 +204,7 @@ export default function Closet() {
   const filterBottoms = () => { clearFilters(); setBottoms(true); };
   const filterShoes = () => { clearFilters(); setShoes(true); };
   const filterAccessories = () => { clearFilters(); setAccessories(true); };
+  const toggleStarred = () => setStarred(s => !s);
 
   if (!user) return <PageSkeleton />;
 
@@ -217,13 +219,14 @@ export default function Closet() {
     { label: 'Accessories', active: accessories,   onClick: filterAccessories },
   ];
 
-  const activeCards = all          ? cards
+  const categoryCards = all          ? cards
     : outerWear   ? cards.filter(c => c.clothing.getType() === 'Outerwear')
     : tops        ? cards.filter(c => c.clothing.getType() === 'Top')
     : bottoms     ? cards.filter(c => c.clothing.getType() === 'Bottom')
     : shoes       ? cards.filter(c => c.clothing.getType() === 'Shoes')
     : accessories ? cards.filter(c => c.clothing.getType() === 'Accessory')
     : cards;
+  const activeCards = starred ? categoryCards.filter(c => c.clothing.getStarred()) : categoryCards;
 
   const trimmed = searchQuery.trim().toLowerCase();
   const displayedCards = trimmed
@@ -283,6 +286,17 @@ export default function Closet() {
                 <Search size={13} />
               </button>
             )}
+            <button
+              onClick={toggleStarred}
+              className={`flex items-center justify-center w-9 h-9 rounded-full border transition-all duration-300 ${
+                starred
+                  ? 'bg-mocha-500 text-mocha-100 border-mocha-500'
+                  : 'border-mocha-300 text-mocha-500 hover:border-mocha-500'
+              }`}
+              aria-label="Starred"
+            >
+              <span className="text-[13px] leading-none">{starred ? '★' : '☆'}</span>
+            </button>
             <button
               onClick={() => setAdd(true)}
               className="flex items-center gap-2 px-5 py-2.5 bg-mocha-500 text-mocha-100 text-[10px] tracking-[0.3em] uppercase rounded-full hover:bg-mocha-400 transition-all duration-300"

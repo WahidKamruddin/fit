@@ -134,7 +134,12 @@ const OutfitCard = ({ userID, outfit, clothes, canEdit, onClearDate, onLongPress
       shoes: editShoes,
       accessories: editAccessories,
     };
-    await supabase.from('outfits').update(updates).eq('id', outfit.id).eq('user_id', userID);
+    const { error } = await supabase.from('outfits').update(updates).eq('id', outfit.id).eq('user_id', userID);
+    if (error) {
+      console.error('Failed to update outfit:', error.message);
+      setSaving(false);
+      return;
+    }
     updateOutfit(outfit.id, {
       Name: editName.trim() || undefined,
       OuterWear: editOuterWear,
@@ -212,7 +217,11 @@ const OutfitCard = ({ userID, outfit, clothes, canEdit, onClearDate, onLongPress
         {confirmOpen && (
           <ConfirmDialog
             title="Delete this look?"
-            body="This outfit will be permanently removed. This action cannot be undone."
+            body={
+              outfit.Dates.length > 0
+                ? `This outfit is planned on ${outfit.Dates.length} ${outfit.Dates.length === 1 ? 'day' : 'days'} in your calendar. It will be permanently removed from all of them. This action cannot be undone.`
+                : 'This outfit will be permanently removed. This action cannot be undone.'
+            }
             onConfirm={deleteOutfit}
             onCancel={() => setConfirmOpen(false)}
           />

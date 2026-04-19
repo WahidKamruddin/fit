@@ -168,16 +168,25 @@ export default function Calendar() {
                   >
                     <time dateTime={format(day, 'MM-dd-yyyy')}>{format(day, 'd')}</time>
                   </button>
-                  {/* Outfit indicator dot */}
-                  <span
-                    className={`w-1 h-1 rounded-full transition-all duration-200 ${
+                  {/* Outfit indicator t-shirt */}
+                  <svg
+                    viewBox="0 0 24 24"
+                    width="13"
+                    height="13"
+                    aria-hidden="true"
+                    className={`transition-all duration-200 ${
                       hasOutfit
                         ? isSelected
-                          ? 'bg-white/50'
-                          : 'bg-mocha-300'
+                          ? 'text-mocha-500'
+                          : 'text-mocha-300'
                         : 'invisible'
                     }`}
-                  />
+                  >
+                    <path
+                      d="M16 2L22 8L19 11L17 9V20H7V9L5 11L2 8L8 2C8.5 3.5 10 4.5 12 4.5C14 4.5 15.5 3.5 16 2Z"
+                      fill="currentColor"
+                    />
+                  </svg>
                 </div>
               );
             })}
@@ -220,7 +229,7 @@ export default function Calendar() {
               </div>
               <div className="h-px bg-mocha-200 mb-6" />
               <div
-                className="overflow-x-auto -mx-1 px-1"
+                className="overflow-x-auto -mx-1 px-1 -mt-6 pt-6 -mb-16 pb-16"
                 onClick={e => { if (e.target === e.currentTarget) setEditMode(false); }}
               >
                 <div

@@ -25,7 +25,7 @@ const Card = ({ userID, aClothing, edit, select, handleOuterWear, onLongPress }:
   const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pressStartRef = useRef<number>(0);
   const longFiredRef = useRef(false);
-  const { removeCard, outfits, removeOutfit, updateCardName } = useCloset();
+  const { removeCard, outfits, removeOutfit, updateOutfit, updateCardName } = useCloset();
 
   const startPress = () => {
     longFiredRef.current = false;
@@ -68,18 +68,37 @@ const Card = ({ userID, aClothing, edit, select, handleOuterWear, onLongPress }:
     await supabase.from('clothes').update({ starred: newStarred }).eq('id', aClothing.id).eq('user_id', userID);
   };
 
-  const affectedOutfits = outfits.filter(o =>
-    o.Top === aClothing.id ||
-    o.Bottom === aClothing.id ||
-    o.OuterWear === aClothing.id ||
-    o.Shoes === aClothing.id ||
-    (o.Accessories ?? []).includes(aClothing.id)
+  const outfitsToDelete = outfits.filter(o =>
+    o.Top === aClothing.id || o.Bottom === aClothing.id
+  );
+
+  const outfitsToUpdate = outfits.filter(o =>
+    o.Top !== aClothing.id &&
+    o.Bottom !== aClothing.id &&
+    (
+      o.OuterWear === aClothing.id ||
+      o.Shoes === aClothing.id ||
+      (o.Accessories ?? []).includes(aClothing.id)
+    )
   );
 
   const deleteClothing = async () => {
-    if (affectedOutfits.length > 0) {
-      await supabase.from('outfits').delete().in('id', affectedOutfits.map(o => o.id)).eq('user_id', userID);
-      affectedOutfits.forEach(o => removeOutfit(o.id));
+    if (outfitsToDelete.length > 0) {
+      await supabase.from('outfits').delete().in('id', outfitsToDelete.map(o => o.id)).eq('user_id', userID);
+      outfitsToDelete.forEach(o => removeOutfit(o.id));
+    }
+    for (const o of outfitsToUpdate) {
+      const patch = {
+        outer_wear: o.OuterWear === aClothing.id ? null : o.OuterWear,
+        shoes: o.Shoes === aClothing.id ? null : o.Shoes,
+        accessories: (o.Accessories ?? []).filter(id => id !== aClothing.id),
+      };
+      await supabase.from('outfits').update(patch).eq('id', o.id).eq('user_id', userID);
+      updateOutfit(o.id, {
+        OuterWear: patch.outer_wear,
+        Shoes: patch.shoes,
+        Accessories: patch.accessories,
+      });
     }
     removeCard(aClothing.id);
     if (aClothing.imageId) {
@@ -128,11 +147,17 @@ const Card = ({ userID, aClothing, edit, select, handleOuterWear, onLongPress }:
         {confirmOpen && (
           <ConfirmDialog
             title="Delete this piece?"
-            body={
-              affectedOutfits.length > 0
-                ? `This item appears in ${affectedOutfits.length} outfit${affectedOutfits.length > 1 ? 's' : ''}. Deleting it will also remove those looks.`
-                : "This action cannot be undone."
-            }
+            body={(() => {
+              const del = outfitsToDelete.length;
+              const upd = outfitsToUpdate.length;
+              if (del > 0 && upd > 0)
+                return `This item is required in ${del} outfit${del > 1 ? 's' : ''} (which will be deleted) and optional in ${upd} outfit${upd > 1 ? 's' : ''} (it will be removed from those looks).`;
+              if (del > 0)
+                return `This item is required in ${del} outfit${del > 1 ? 's' : ''}. Deleting it will also remove those looks.`;
+              if (upd > 0)
+                return `This item appears as an optional piece in ${upd} outfit${upd > 1 ? 's' : ''}. It will be removed from those looks.`;
+              return 'This action cannot be undone.';
+            })()}
             onConfirm={deleteClothing}
             onCancel={() => setConfirmOpen(false)}
           />

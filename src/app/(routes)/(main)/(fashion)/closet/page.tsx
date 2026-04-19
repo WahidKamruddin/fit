@@ -54,7 +54,7 @@ export default function Closet() {
       throw new Error('Please upload a valid image file (JPG, PNG, GIF, or WEBP).');
     }
 
-    const MAX_SIZE_MB = 10;
+    const MAX_SIZE_MB = 20;
     if (file.size > MAX_SIZE_MB * 1024 * 1024) {
       throw new Error(`Image must be under ${MAX_SIZE_MB}MB.`);
     }
@@ -422,11 +422,11 @@ export default function Closet() {
                   <FileUploader
                     multiple={false}
                     handleChange={(e: File) => { setPickerError(''); setFile(e); }}
-                    onSizeError={() => setPickerError('Image must be under 10MB.')}
+                    onSizeError={() => setPickerError('Image must be under 20MB.')}
                     types={fileTypes}
                     name="file"
                     label="Upload or drop a photo here"
-                    maxSize={10}
+                    maxSize={20}
                   />
                 </div>
                 {pickerError && (

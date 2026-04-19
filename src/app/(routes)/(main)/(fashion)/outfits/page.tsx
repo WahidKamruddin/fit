@@ -26,6 +26,7 @@ export default function Outfit() {
 
   const { cards, hasClothes, outfits, addOutfit: addOutfitToContext } = useCloset();
 
+  const [searchQuery, setSearchQuery] = useState('');
   const [add, setAdd] = useState(false);
   const [edit, setEdit] = useState(false);
   const [aiModal, setAiModal] = useState(false);
@@ -92,8 +93,15 @@ export default function Outfit() {
     setAccessories([]);
   };
 
+  const trimmedSearch = searchQuery.trim().toLowerCase();
+
+  const filteredOutfits = useMemo(() => {
+    if (!trimmedSearch) return outfits;
+    return outfits.filter(o => o.Name && o.Name.toLowerCase().includes(trimmedSearch));
+  }, [outfits, trimmedSearch]);
+
   const memoizedOutfits = useMemo(() => {
-    return outfits?.map((something) => (
+    return filteredOutfits?.map((something) => (
       <div key={something.id}>
         <OutfitCard
           userID={user?.id ?? null}
@@ -104,7 +112,7 @@ export default function Outfit() {
         />
       </div>
     ));
-  }, [outfits, cards, edit, user?.id]);
+  }, [filteredOutfits, cards, edit, user?.id]);
 
   if (!user) return <PageSkeleton />;
 
@@ -166,6 +174,17 @@ export default function Outfit() {
 
           {/* Divider */}
           <div className="mt-6 h-px bg-mocha-200 animate-fade-in" style={{ animationDelay: '0.3s' }} />
+
+          {/* Search input */}
+          <div className="mt-4 animate-fade-in" style={{ animationDelay: '0.35s' }}>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder="Search outfits by name…"
+              className="w-full bg-transparent border-b border-mocha-200 focus:border-mocha-400 outline-none text-sm text-mocha-500 placeholder-mocha-300 py-2 transition-colors duration-200"
+            />
+          </div>
         </div>
       </div>
 
@@ -175,13 +194,24 @@ export default function Outfit() {
         onClick={e => { if (e.target === e.currentTarget) setEdit(false); }}
       >
         {outfits.length > 0 ? (
-          <div
-            className="mt-8 pb-8 flex flex-wrap justify-center gap-6 animate-fade-in"
-            style={{ animationDelay: '0.35s' }}
-            onClick={e => { if (e.target === e.currentTarget) setEdit(false); }}
-          >
-            {memoizedOutfits}
-          </div>
+          filteredOutfits.length > 0 ? (
+            <div
+              className="mt-8 pb-8 flex flex-wrap justify-center gap-6 animate-fade-in"
+              style={{ animationDelay: '0.35s' }}
+              onClick={e => { if (e.target === e.currentTarget) setEdit(false); }}
+            >
+              {memoizedOutfits}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-32 animate-fade-in">
+              <p className="font-cormorant text-3xl font-light text-mocha-400">
+                No results found.
+              </p>
+              <p className="mt-3 text-[10px] tracking-[0.4em] uppercase text-mocha-300 text-center max-w-xs">
+                {trimmedSearch ? 'Try a different search term' : 'Name your outfits to find them here'}
+              </p>
+            </div>
+          )
         ) : (
           <div className="flex flex-col items-center justify-center py-32 animate-fade-in" style={{ animationDelay: '0.4s' }}>
             <span className="font-cormorant text-[6rem] font-light text-mocha-200/60 leading-none select-none">

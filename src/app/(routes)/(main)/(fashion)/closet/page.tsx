@@ -32,6 +32,7 @@ export default function Closet() {
   const { cards, hasClothes, addCard } = useCloset();
 
   // Add data states
+  const [searchQuery, setSearchQuery] = useState('');
   const [add, setAdd] = useState(false);
   const [edit, setEdit] = useState(false);
   const [file, setFile] = useState<File | null>(null);
@@ -223,6 +224,11 @@ export default function Closet() {
     : accessories ? cards.filter(c => c.clothing.getType() === 'Accessory')
     : cards;
 
+  const trimmed = searchQuery.trim().toLowerCase();
+  const displayedCards = trimmed
+    ? activeCards.filter(c => c.clothing.getName().toLowerCase().includes(trimmed))
+    : activeCards;
+
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-off-white-100">
 
@@ -288,6 +294,17 @@ export default function Closet() {
             </button>
           ))}
         </div>
+
+        {/* Search input */}
+        <div className="mt-4 animate-fade-in" style={{ animationDelay: '0.4s' }}>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            placeholder="Search clothing…"
+            className="w-full bg-transparent border-b border-mocha-200 focus:border-mocha-400 outline-none text-sm text-mocha-500 placeholder-mocha-300 py-2 transition-colors duration-200"
+          />
+        </div>
       </div>
 
       {/* ── Clothing grid ─────────────────────────────────────── */}
@@ -297,15 +314,26 @@ export default function Closet() {
         onClick={e => { if (e.target === e.currentTarget) setEdit(false); }}
       >
         {hasClothes ? (
-          <CardList
-            userID={user.id}
-            cards={activeCards}
-            hasClothes={activeCards.length > 0}
-            edit={edit}
-            select={false}
-            onLongPress={() => setEdit(true)}
-            onBackgroundClick={() => setEdit(false)}
-          />
+          displayedCards.length > 0 ? (
+            <CardList
+              userID={user.id}
+              cards={displayedCards}
+              hasClothes={true}
+              edit={edit}
+              select={false}
+              onLongPress={() => setEdit(true)}
+              onBackgroundClick={() => setEdit(false)}
+            />
+          ) : (
+            <div className="flex flex-col items-center justify-center py-32 animate-fade-in">
+              <p className="font-cormorant text-3xl font-light text-mocha-400">
+                No results found.
+              </p>
+              <p className="mt-3 text-[10px] tracking-[0.4em] uppercase text-mocha-300 text-center max-w-xs">
+                Try a different search term
+              </p>
+            </div>
+          )
         ) : (
           /* Empty state */
           <div className="flex flex-col items-center justify-center py-32 animate-fade-in" style={{ animationDelay: '0.4s' }}>

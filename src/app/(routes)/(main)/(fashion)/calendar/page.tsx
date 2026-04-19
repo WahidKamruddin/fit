@@ -1,29 +1,24 @@
 'use client'
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useUser } from "@/src/app/auth/auth";
 import { supabase } from "@/src/app/supabaseConfig/client";
 import { add, eachDayOfInterval, endOfMonth, format, getDay, isEqual, isToday, parse, startOfMonth, startOfToday } from "date-fns";
 import OutfitCard from "@/src/app/components/outfit-card";
 import { IoMdAdd } from "react-icons/io";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, Pencil, Search } from "lucide-react";
 import { useCloset } from "@/src/app/providers/closetContext";
 import PageSkeleton from "@/src/app/components/page-skeleton";
-
-interface CalendarEntry {
-  id: string;
-  outfit_id: string;
-  date: string;
-}
+import { capitalize } from "@/src/app/lib/utils";
 
 export default function Calendar() {
   const user = useUser();
-  const { cards, outfits } = useCloset();
+  const { cards, outfits, addOutfitDate, removeOutfitDate } = useCloset();
 
-  const [calendarEntries, setCalendarEntries] = useState<CalendarEntry[]>([]);
-  const [currentEntry, setCurrentEntry] = useState<CalendarEntry | null>(null);
   const [fit, setFit] = useState<string | null>(null);
   const [addButton, setAddButton] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [outfitSearch, setOutfitSearch] = useState('');
 
   const today = startOfToday();
   const [selectedDay, setSelectedDay] = useState(today);
@@ -45,62 +40,50 @@ export default function Calendar() {
     setCurrentMonth(format(firstDayPrevMonth, 'MMM-yyyy'));
   };
 
-  // Fetch calendar entries + realtime
-  useEffect(() => {
-    if (!user) return;
+  const formattedDay = format(selectedDay, 'MMddyy');
 
-    const fetchEntries = async () => {
-      const { data } = await supabase
-        .from('calendar_entries')
-        .select('id, outfit_id, date')
-        .eq('user_id', user.id);
-      if (data) setCalendarEntries(data);
-    };
+  // Exit edit mode whenever the selected day changes
+  const handleSelectDay = (day: Date) => {
+    setSelectedDay(day);
+    setEditMode(false);
+  };
 
-    fetchEntries();
+  // All outfits assigned to the selected day
+  const dayOutfits = outfits.filter(o => o.Dates.includes(formattedDay));
 
-    const channel = supabase
-      .channel(`calendar-${user.id}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'calendar_entries', filter: `user_id=eq.${user.id}` }, fetchEntries)
-      .subscribe();
+  // Set of all date strings that have at least one outfit — used for dot indicators
+  const daysWithOutfits = new Set(outfits.flatMap(o => o.Dates));
 
-    return () => { supabase.removeChannel(channel); };
-  }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Outfits not yet assigned to this day (for the picker modal)
+  const unassignedOutfits = outfits.filter(o => !o.Dates.includes(formattedDay));
 
-  // Resolve the entry for the selected day
-  useEffect(() => {
-    const formattedDay = format(selectedDay, 'MMddyy');
-    setCurrentEntry(calendarEntries.find(e => e.date === formattedDay) ?? null);
-  }, [selectedDay, calendarEntries]);
+  const filteredUnassigned = outfitSearch.trim()
+    ? unassignedOutfits.filter(o => o.Name?.toLowerCase().includes(outfitSearch.trim().toLowerCase()))
+    : unassignedOutfits;
 
   const handleOutfit = async (outfitId: string) => {
     if (!user) return;
-    const date = format(selectedDay, 'MMddyy');
-    const tempId = crypto.randomUUID();
-    setCalendarEntries(prev => [...prev, { id: tempId, outfit_id: outfitId, date }]);
+    const outfit = outfits.find(o => o.id === outfitId);
+    if (!outfit) return;
+    const newDates = [...outfit.Dates, formattedDay];
+    addOutfitDate(outfitId, formattedDay);
     setAddButton(false);
-
-    const { data } = await supabase.from('calendar_entries').insert({
-      user_id: user.id,
-      outfit_id: outfitId,
-      date,
-    }).select('id, outfit_id, date').single();
-
-    if (data) {
-      setCalendarEntries(prev => prev.map(e => e.id === tempId ? data : e));
-    }
+    setFit(null);
+    await supabase.from('outfits').update({ dates: newDates }).eq('id', outfitId).eq('user_id', user.id);
   };
 
-  const handleClearDate = async () => {
-    if (!currentEntry) return;
-    const entryId = currentEntry.id;
-    setCalendarEntries(prev => prev.filter(e => e.id !== entryId));
-    await supabase.from('calendar_entries').delete().eq('id', entryId);
+  const handleClearDate = async (outfitId: string) => {
+    if (!user) return;
+    const outfit = outfits.find(o => o.id === outfitId);
+    if (!outfit) return;
+    const newDates = outfit.Dates.filter(d => d !== formattedDay);
+    removeOutfitDate(outfitId, formattedDay);
+    await supabase.from('outfits').update({ dates: newDates }).eq('id', outfitId).eq('user_id', user.id);
   };
 
   if (!user) return <PageSkeleton />;
 
-  const firstName = (user.user_metadata?.full_name ?? user.user_metadata?.name)?.split(' ')[0] ?? 'Your';
+  const firstName = capitalize((user.user_metadata?.full_name ?? user.user_metadata?.name)?.split(' ')[0] ?? 'Your');
 
   return (
     <div className="min-h-screen w-full pt-16 bg-off-white-100">
@@ -165,51 +148,113 @@ export default function Calendar() {
 
           {/* Day grid */}
           <div className="grid grid-cols-7">
-            {days.map((day, dayIdx) => (
-              <div
-                key={day.toString()}
-                className={`${dayIdx === 0 ? colStartClasses[getDay(day)] : ''} py-1 flex justify-center`}
-              >
-                <button
-                  type="button"
-                  onClick={() => setSelectedDay(day)}
-                  className={[
-                    'h-9 w-9 flex items-center justify-center rounded-full text-sm transition-all duration-200',
-                    isEqual(day, selectedDay) && isToday(day)
-                      ? 'bg-mocha-400 text-white font-semibold'
-                      : isEqual(day, selectedDay)
-                      ? 'bg-mocha-500 text-white font-semibold'
-                      : isToday(day)
-                      ? 'text-mocha-400 font-semibold hover:bg-mocha-100'
-                      : 'text-mocha-500 hover:bg-mocha-100',
-                  ].join(' ')}
+            {days.map((day, dayIdx) => {
+              const dayKey = format(day, 'MMddyy');
+              const hasOutfit = daysWithOutfits.has(dayKey);
+              const isSelected = isEqual(day, selectedDay);
+              return (
+                <div
+                  key={day.toString()}
+                  className={`${dayIdx === 0 ? colStartClasses[getDay(day)] : ''} py-1 flex flex-col items-center gap-0.5`}
                 >
-                  <time dateTime={format(day, 'MM-dd-yyyy')}>{format(day, 'd')}</time>
-                </button>
-              </div>
-            ))}
+                  <button
+                    type="button"
+                    onClick={() => handleSelectDay(day)}
+                    className={[
+                      'h-9 w-9 flex items-center justify-center rounded-full text-sm transition-all duration-200',
+                      isSelected && isToday(day)
+                        ? 'bg-mocha-400 text-white font-semibold'
+                        : isSelected
+                        ? 'bg-mocha-500 text-white font-semibold'
+                        : isToday(day)
+                        ? 'text-mocha-400 font-semibold hover:bg-mocha-100'
+                        : 'text-mocha-500 hover:bg-mocha-100',
+                    ].join(' ')}
+                  >
+                    <time dateTime={format(day, 'MM-dd-yyyy')}>{format(day, 'd')}</time>
+                  </button>
+                  {/* Outfit indicator t-shirt */}
+                  <svg
+                    viewBox="0 0 24 24"
+                    width="13"
+                    height="13"
+                    aria-hidden="true"
+                    className={`transition-all duration-200 ${
+                      hasOutfit
+                        ? isSelected
+                          ? 'text-mocha-500'
+                          : 'text-mocha-300'
+                        : 'invisible'
+                    }`}
+                  >
+                    <path
+                      d="M16 2L22 8L19 11L17 9V20H7V9L5 11L2 8L8 2C8.5 3.5 10 4.5 12 4.5C14 4.5 15.5 3.5 16 2Z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                </div>
+              );
+            })}
           </div>
         </div>
 
         {/* Day panel */}
-        <div className="w-full lg:flex-1 bg-white rounded-2xl shadow-sm border border-mocha-200/60 p-6 sm:p-8">
-          {currentEntry ? (
-            <div>
-              <p className="text-[10px] tracking-[0.5em] uppercase text-mocha-400 mb-2">
-                Outfit for
-              </p>
-              <p className="font-cormorant text-2xl font-light text-mocha-500 mb-6">
-                {format(selectedDay, 'MMMM d, yyyy')}
-              </p>
+        <div className="w-full lg:flex-1 min-w-0 bg-white rounded-2xl shadow-sm border border-mocha-200/60 p-6 sm:p-8">
+          {dayOutfits.length > 0 ? (
+            <div className="flex flex-col h-full">
+              <div className="flex items-start justify-between mb-2">
+                <div>
+                  <p className="text-[10px] tracking-[0.5em] uppercase text-mocha-400 mb-2">
+                    {dayOutfits.length === 1 ? 'Outfit' : `${dayOutfits.length} Outfits`} for
+                  </p>
+                  <p className="font-cormorant text-2xl font-light text-mocha-500">
+                    {format(selectedDay, 'MMMM d, yyyy')}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 mt-1">
+                  <button
+                    onClick={() => setAddButton(true)}
+                    className="flex items-center gap-1.5 px-4 py-2 border border-mocha-200 text-mocha-400 text-[10px] tracking-[0.3em] uppercase rounded-full hover:border-mocha-400 hover:text-mocha-500 transition-all duration-200 flex-shrink-0"
+                  >
+                    <IoMdAdd size={12} />
+                    Add
+                  </button>
+                  <button
+                    onClick={() => setEditMode(v => !v)}
+                    className={`flex items-center gap-1.5 px-4 py-2 text-[10px] tracking-[0.3em] uppercase rounded-full border transition-all duration-200 flex-shrink-0 ${
+                      editMode
+                        ? 'bg-mocha-500 text-mocha-100 border-mocha-500'
+                        : 'border-mocha-200 text-mocha-400 hover:border-mocha-400 hover:text-mocha-500'
+                    }`}
+                  >
+                    <Pencil size={11} />
+                    {editMode ? 'Done' : 'Edit'}
+                  </button>
+                </div>
+              </div>
               <div className="h-px bg-mocha-200 mb-6" />
-              {outfits.find(o => o.id === currentEntry.outfit_id) && (
-                <OutfitCard
-                  userID={user.id}
-                  outfit={outfits.find(o => o.id === currentEntry.outfit_id)!}
-                  clothes={cards}
-                  onClearDate={handleClearDate}
-                />
-              )}
+              <div
+                className="overflow-x-auto -mx-6 sm:-mx-8 px-6 sm:px-8 -mb-6 sm:-mb-8 pb-6 sm:pb-8"
+                onClick={e => { if (e.target === e.currentTarget) setEditMode(false); }}
+              >
+                <div
+                  className="flex gap-4 pt-4 pb-4 w-max"
+                  onClick={e => { if (e.target === e.currentTarget) setEditMode(false); }}
+                >
+                  {dayOutfits.map(outfit => (
+                    <div key={outfit.id} className="flex-shrink-0">
+                      <OutfitCard
+                        userID={user.id}
+                        outfit={outfit}
+                        clothes={cards}
+                        canEdit={editMode}
+                        onLongPress={() => setEditMode(true)}
+                        onClearDate={editMode ? () => handleClearDate(outfit.id) : undefined}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           ) : (
             <div className="h-full min-h-48 flex flex-col justify-center items-center gap-5">
@@ -239,7 +284,7 @@ export default function Calendar() {
           <div className="relative w-full max-w-2xl bg-off-white-100 rounded-3xl p-6 sm:p-8 shadow-2xl flex flex-col gap-6">
 
             <button
-              onClick={() => setAddButton(false)}
+              onClick={() => { setAddButton(false); setFit(null); setOutfitSearch(''); }}
               className="absolute top-5 right-5 w-8 h-8 flex items-center justify-center rounded-full border border-mocha-200 text-mocha-400 hover:border-mocha-400 hover:text-mocha-500 transition-all duration-200"
               aria-label="Close"
             >
@@ -255,22 +300,45 @@ export default function Calendar() {
               </h2>
             </div>
 
+            {/* Search */}
+            <div className="flex items-center gap-2 border border-mocha-200 rounded-full px-3 py-1.5">
+              <Search size={10} className="text-mocha-300 flex-shrink-0" />
+              <input
+                type="text"
+                value={outfitSearch}
+                onChange={e => setOutfitSearch(e.target.value)}
+                placeholder="Search outfits…"
+                className="bg-transparent outline-none text-[10px] tracking-[0.2em] text-mocha-500 placeholder-mocha-300 w-full"
+              />
+              {outfitSearch && (
+                <button onClick={() => setOutfitSearch('')} className="text-mocha-300 hover:text-mocha-500 leading-none text-xs">✕</button>
+              )}
+            </div>
+
             <div className="h-64 sm:h-80 overflow-y-auto rounded-2xl border border-mocha-200">
-              {outfits.length > 0 ? (
-                <div className="flex flex-wrap justify-center gap-3 p-4">
-                  {outfits.map((something) => (
-                    <button
-                      key={something.id}
-                      onClick={() => setFit(something.id)}
-                      className={`rounded-2xl border-2 transition-all duration-200 ${fit === something.id ? 'border-mocha-500 scale-105' : 'border-transparent'}`}
-                    >
-                      <OutfitCard userID={user.id} outfit={something} clothes={cards} canEdit={false} />
-                    </button>
-                  ))}
-                </div>
+              {unassignedOutfits.length > 0 ? (
+                filteredUnassigned.length > 0 ? (
+                  <div className="flex flex-wrap justify-center gap-3 p-4">
+                    {filteredUnassigned.map((something) => (
+                      <button
+                        key={something.id}
+                        onClick={() => setFit(something.id)}
+                        className={`rounded-2xl border-2 transition-all duration-200 ${fit === something.id ? 'border-mocha-500 scale-105' : 'border-transparent'}`}
+                      >
+                        <OutfitCard userID={user.id} outfit={something} clothes={cards} canEdit={false} />
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="h-full flex flex-col items-center justify-center gap-2">
+                    <p className="text-[10px] tracking-[0.4em] uppercase text-mocha-300">No results found</p>
+                  </div>
+                )
               ) : (
-                <div className="h-full flex items-center justify-center">
-                  <p className="text-[10px] tracking-[0.4em] uppercase text-mocha-300">No outfits found</p>
+                <div className="h-full flex flex-col items-center justify-center gap-2">
+                  <p className="text-[10px] tracking-[0.4em] uppercase text-mocha-300">
+                    {outfits.length === 0 ? 'No outfits found' : 'All outfits already planned for this day'}
+                  </p>
                 </div>
               )}
             </div>

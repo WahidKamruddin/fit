@@ -15,11 +15,15 @@ interface CardListProps {
   select: boolean;
   handleOuterWear?: (item: Clothing, id: string) => void;
   onLongPress?: () => void;
+  onBackgroundClick?: () => void;
 }
 
-const CardList = ({ userID, cards, hasClothes, edit, select, handleOuterWear, onLongPress }: CardListProps) => {
+const CardList = ({ userID, cards, hasClothes, edit, select, handleOuterWear, onLongPress, onBackgroundClick }: CardListProps) => {
   return (
-    <div className="w-7/8 flex flex-wrap justify-center">
+    <div
+      className="w-7/8 flex flex-wrap justify-center"
+      onClick={e => { if (e.target === e.currentTarget) onBackgroundClick?.(); }}
+    >
       {hasClothes ? (
         cards.map((something) => (
           <div className="mt-8 mx-10 min-w-max" key={something.id}>

@@ -13,12 +13,13 @@ interface ClothingCard {
 
 interface OutfitDoc {
   id: string;
+  Name?: string;
   OuterWear: string | null;
   Top: string;
   Bottom: string;
   Shoes: string | null;
   Accessories: string[];
-  Date: string | null;
+  Dates: string[];
 }
 
 interface ClosetContextValue {
@@ -29,7 +30,12 @@ interface ClosetContextValue {
   addCard: (card: ClothingCard) => void;
   addOutfit: (outfit: OutfitDoc) => void;
   removeOutfit: (id: string) => void;
-  updateOutfitDate: (id: string, date: string | null) => void;
+  addOutfitDate: (id: string, date: string) => void;
+  removeOutfitDate: (id: string, date: string) => void;
+  updateCardName: (id: string, name: string) => void;
+  updateCardStarred: (id: string, starred: boolean) => void;
+  updateOutfitName: (id: string, name: string) => void;
+  updateOutfit: (id: string, updates: Partial<OutfitDoc>) => void;
 }
 
 export const ClosetContext = createContext<ClosetContextValue>({
@@ -40,7 +46,12 @@ export const ClosetContext = createContext<ClosetContextValue>({
   addCard: () => {},
   addOutfit: () => {},
   removeOutfit: () => {},
-  updateOutfitDate: () => {},
+  addOutfitDate: () => {},
+  removeOutfitDate: () => {},
+  updateCardName: () => {},
+  updateCardStarred: () => {},
+  updateOutfitName: () => {},
+  updateOutfit: () => {},
 });
 
 export function ClosetProvider({ children }: { children: React.ReactNode }) {
@@ -91,12 +102,13 @@ export function ClosetProvider({ children }: { children: React.ReactNode }) {
       if (outfitsData) {
         const outfitArr: OutfitDoc[] = outfitsData.map((row) => ({
           id: row.id,
+          Name: row.name ?? undefined,
           OuterWear: row.outer_wear,
           Top: row.top,
           Bottom: row.bottom,
           Shoes: row.shoes ?? null,
           Accessories: row.accessories ?? [],
-          Date: row.date,
+          Dates: row.dates ?? [],
         }));
         setOutfits(outfitArr);
       }
@@ -132,8 +144,12 @@ export function ClosetProvider({ children }: { children: React.ReactNode }) {
     setOutfits((prev) => prev.filter((o) => o.id !== id));
   };
 
-  const updateOutfitDate = (id: string, date: string | null) => {
-    setOutfits((prev) => prev.map((o) => o.id === id ? { ...o, Date: date } : o));
+  const addOutfitDate = (id: string, date: string) => {
+    setOutfits((prev) => prev.map((o) => o.id === id ? { ...o, Dates: [...o.Dates, date] } : o));
+  };
+
+  const removeOutfitDate = (id: string, date: string) => {
+    setOutfits((prev) => prev.map((o) => o.id === id ? { ...o, Dates: o.Dates.filter(d => d !== date) } : o));
   };
 
   const removeCard = (id: string) => {
@@ -144,11 +160,36 @@ export function ClosetProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
+  const updateCardStarred = (id: string, starred: boolean) => {
+    setCards((prev) => prev.map((c) => {
+      if (c.id !== id) return c;
+      c.clothing.starred = starred;
+      return { ...c };
+    }));
+  };
+
+  const updateCardName = (id: string, name: string) => {
+    setCards((prev) => prev.map((c) => {
+      if (c.id !== id) return c;
+      c.clothing.setFields(name);
+      return { ...c };
+    }));
+  };
+
+  const updateOutfitName = (id: string, name: string) => {
+    setOutfits((prev) => prev.map((o) => o.id === id ? { ...o, Name: name } : o));
+  };
+
+  const updateOutfit = (id: string, updates: Partial<OutfitDoc>) => {
+    setOutfits((prev) => prev.map((o) => o.id === id ? { ...o, ...updates } : o));
+  };
+
   return (
-    <ClosetContext.Provider value={{ cards, outfits, hasClothes, removeCard, addCard, addOutfit, removeOutfit, updateOutfitDate }}>
+    <ClosetContext.Provider value={{ cards, outfits, hasClothes, removeCard, addCard, addOutfit, removeOutfit, addOutfitDate, removeOutfitDate, updateCardName, updateCardStarred, updateOutfitName, updateOutfit }}>
       {children}
     </ClosetContext.Provider>
   );
 }
+
 
 export const useCloset = () => useContext(ClosetContext);

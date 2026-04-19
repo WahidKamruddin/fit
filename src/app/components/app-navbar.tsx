@@ -6,14 +6,28 @@ import { useUser, logOut } from "../auth/auth"
 import { usePathname, useRouter } from "next/navigation"
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
 import { Settings, LogOut, Menu, X } from "lucide-react"
+import { capitalize } from "@/src/app/lib/utils"
+import { useSocial } from "@/src/app/providers/socialContext"
+import { useMessages } from "@/src/app/providers/messagesContext"
 
-const navGroups = [
+type NavItem = { label: string; href: string; badge?: number }
+type NavGroup = { label: string; items: NavItem[] }
+
+const BASE_NAV_GROUPS: NavGroup[] = [
   {
     label: "Fashion",
     items: [
       { label: "Closet",   href: "/closet" },
       { label: "Outfits",  href: "/outfits" },
       { label: "Calendar", href: "/calendar" },
+    ],
+  },
+  {
+    label: "Social",
+    items: [
+      { label: "Feed",          href: "/feed" },
+      { label: "Messages",      href: "/messages" },
+      { label: "Notifications", href: "/notifications" },
     ],
   },
   {
@@ -48,6 +62,28 @@ const navGroups = [
 export function AppNavbar() {
   const user = useUser()
   const pathname = usePathname()
+  const { unreadNotifCount, currentProfile } = useSocial()
+  const { totalUnread: totalUnreadMessages } = useMessages()
+
+  // Patch badges + dynamic profile link into the Social group
+  const navGroups: NavGroup[] = BASE_NAV_GROUPS.map(group => {
+    if (group.label !== 'Social') return group
+
+    const items: NavItem[] = group.items.map(item => {
+      if (item.label === 'Notifications' && unreadNotifCount > 0)
+        return { ...item, badge: unreadNotifCount }
+      if (item.label === 'Messages' && totalUnreadMessages > 0)
+        return { ...item, badge: totalUnreadMessages }
+      return item
+    })
+
+    // Append the user's profile link once username is set
+    if (currentProfile?.username) {
+      items.push({ label: 'My Profile', href: `/profile/${currentProfile.username}` })
+    }
+
+    return { ...group, items }
+  })
 
   const [openGroup, setOpenGroup]       = useState<string | null>(null)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
@@ -67,7 +103,7 @@ export function AppNavbar() {
 
   const userName  = user?.user_metadata?.full_name ?? user?.user_metadata?.name ?? "User"
   const avatar    = user?.user_metadata?.avatar_url ?? ""
-  const firstName = userName.split(' ')[0]
+  const firstName = capitalize(userName.split(' ')[0])
   const initials  = userName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()
 
   // Which group is "active" (contains the current route)
@@ -119,13 +155,18 @@ export function AppNavbar() {
                         key={item.label}
                         href={item.href}
                         onClick={() => setOpenGroup(null)}
-                        className={`block px-5 py-2 text-[10px] tracking-[0.35em] uppercase transition-colors duration-150 rounded-xl mx-1 ${
+                        className={`flex items-center justify-between px-5 py-2 text-[10px] tracking-[0.35em] uppercase transition-colors duration-150 rounded-xl mx-1 ${
                           pathname === item.href
                             ? 'text-mocha-500 bg-mocha-100/70'
                             : 'text-mocha-400 hover:text-mocha-500 hover:bg-mocha-100/50'
                         }`}
                       >
                         {item.label}
+                        {item.badge && item.badge > 0 && (
+                          <span className="bg-mocha-500 text-mocha-100 text-[8px] px-1.5 py-0.5 rounded-full font-medium ml-2">
+                            {item.badge > 99 ? '99+' : item.badge}
+                          </span>
+                        )}
                       </Link>
                     ))}
                   </div>
@@ -224,11 +265,16 @@ export function AppNavbar() {
                       key={item.label}
                       href={item.href}
                       onClick={() => setMobileOpen(false)}
-                      className={`block py-2 text-[11px] tracking-[0.3em] uppercase transition-colors duration-150 ${
+                      className={`flex items-center gap-2 py-2 text-[11px] tracking-[0.3em] uppercase transition-colors duration-150 ${
                         pathname === item.href ? 'text-mocha-500' : 'text-mocha-400 hover:text-mocha-500'
                       }`}
                     >
                       {item.label}
+                      {item.badge && item.badge > 0 && (
+                        <span className="bg-mocha-500 text-mocha-100 text-[8px] px-1.5 py-0.5 rounded-full font-medium">
+                          {item.badge > 99 ? '99+' : item.badge}
+                        </span>
+                      )}
                     </Link>
                   ))}
                 </div>

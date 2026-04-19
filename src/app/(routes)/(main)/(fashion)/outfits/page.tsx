@@ -8,10 +8,11 @@ import CardList from "@/src/app/components/card-list";
 import { useUser } from "@/src/app/auth/auth";
 import OutfitCard from "@/src/app/components/outfit-card";
 import { useCloset } from "@/src/app/providers/closetContext";
-import { Pencil, Sparkles } from "lucide-react";
+import { Pencil, Search, Sparkles } from "lucide-react";
 import PageSkeleton from "@/src/app/components/page-skeleton";
 import OutfitGeneratorModal from "@/src/app/components/outfit-generator-modal";
 import type { OutfitDoc } from "@/src/app/types/outfit";
+import { capitalize } from "@/src/app/lib/utils";
 
 
 export default function Outfit() {
@@ -25,9 +26,16 @@ export default function Outfit() {
 
   const { cards, hasClothes, outfits, addOutfit: addOutfitToContext } = useCloset();
 
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
   const [add, setAdd] = useState(false);
   const [edit, setEdit] = useState(false);
   const [aiModal, setAiModal] = useState(false);
+
+  // Picker filters (inside the add outfit modal)
+  const [pickerFilter, setPickerFilter] = useState<string>('All');
+  const [pickerSearch, setPickerSearch] = useState('');
+  const [pickerStarred, setPickerStarred] = useState(false);
 
   const handleSelect = (item: Clothing, id: string) => {
     const type = item.getType();
@@ -47,15 +55,20 @@ export default function Outfit() {
 
   const addOutfit = async () => {
     if (!user || !top || !bottom) return;
-    const { data } = await supabase.from('outfits').insert({
+    const { data, error } = await supabase.from('outfits').insert({
       user_id: user.id,
       outer_wear: outerWear?.[1] ?? null,
       top: top[1],
       bottom: bottom[1],
       shoes: shoes?.[1] ?? null,
       accessories: accessories.map(([, id]) => id),
-      date: null,
+      dates: [],
     }).select().single();
+
+    if (error) {
+      console.error('Failed to save outfit:', error.message);
+      return;
+    }
 
     if (data) {
       addOutfitToContext({
@@ -65,7 +78,7 @@ export default function Outfit() {
         Bottom: data.bottom,
         Shoes: data.shoes ?? null,
         Accessories: data.accessories ?? [],
-        Date: data.date,
+        Dates: data.dates ?? [],
       });
     }
   };
@@ -84,10 +97,35 @@ export default function Outfit() {
     setBottom(null);
     setShoes(null);
     setAccessories([]);
+    setPickerFilter('All');
+    setPickerSearch('');
+    setPickerStarred(false);
   };
 
+  const pickerFilterLabels = ['All', 'Outerwear', 'Tops', 'Bottoms', 'Shoes', 'Accessories'];
+
+  const pickerCards = useMemo(() => {
+    let filtered = cards;
+    if (pickerFilter === 'Outerwear') filtered = filtered.filter(c => c.clothing.getType() === 'Outerwear');
+    else if (pickerFilter === 'Tops') filtered = filtered.filter(c => c.clothing.getType() === 'Top');
+    else if (pickerFilter === 'Bottoms') filtered = filtered.filter(c => c.clothing.getType() === 'Bottom');
+    else if (pickerFilter === 'Shoes') filtered = filtered.filter(c => c.clothing.getType() === 'Shoes');
+    else if (pickerFilter === 'Accessories') filtered = filtered.filter(c => c.clothing.getType() === 'Accessory');
+    if (pickerStarred) filtered = filtered.filter(c => c.clothing.getStarred());
+    const q = pickerSearch.trim().toLowerCase();
+    if (q) filtered = filtered.filter(c => c.clothing.getName().toLowerCase().includes(q));
+    return filtered;
+  }, [cards, pickerFilter, pickerStarred, pickerSearch]);
+
+  const trimmedSearch = searchQuery.trim().toLowerCase();
+
+  const filteredOutfits = useMemo(() => {
+    if (!trimmedSearch) return outfits;
+    return outfits.filter(o => o.Name && o.Name.toLowerCase().includes(trimmedSearch));
+  }, [outfits, trimmedSearch]);
+
   const memoizedOutfits = useMemo(() => {
-    return outfits?.map((something) => (
+    return filteredOutfits?.map((something) => (
       <div key={something.id}>
         <OutfitCard
           userID={user?.id ?? null}
@@ -98,11 +136,11 @@ export default function Outfit() {
         />
       </div>
     ));
-  }, [outfits, cards, edit, user?.id]);
+  }, [filteredOutfits, cards, edit, user?.id]);
 
   if (!user) return <PageSkeleton />;
 
-  const firstName = (user.user_metadata?.full_name ?? user.user_metadata?.name)?.split(' ')[0] ?? 'Your';
+  const firstName = capitalize((user.user_metadata?.full_name ?? user.user_metadata?.name)?.split(' ')[0] ?? 'Your');
 
   return (
     <div className="h-screen flex flex-col overflow-hidden pt-16 bg-off-white-100">
@@ -130,6 +168,34 @@ export default function Outfit() {
             </h1>
 
             <div className="flex items-center gap-2 sm:gap-3 pb-1 animate-fade-in" style={{ animationDelay: '0.25s' }}>
+              {searchOpen ? (
+                <div className="flex items-center gap-2 border border-mocha-300 rounded-full px-4 py-2 transition-all duration-300">
+                  <Search size={11} className="text-mocha-400 flex-shrink-0" />
+                  <input
+                    autoFocus
+                    type="text"
+                    value={searchQuery}
+                    onChange={e => setSearchQuery(e.target.value)}
+                    placeholder="Search outfits…"
+                    className="bg-transparent outline-none text-[10px] tracking-[0.2em] text-mocha-500 placeholder-mocha-300 w-32"
+                  />
+                  <button
+                    onClick={() => { setSearchOpen(false); setSearchQuery(''); }}
+                    className="text-mocha-300 hover:text-mocha-500 transition-colors duration-200 leading-none"
+                    aria-label="Close search"
+                  >
+                    <span className="text-xs">✕</span>
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setSearchOpen(true)}
+                  className="flex items-center justify-center w-9 h-9 border border-mocha-300 text-mocha-500 rounded-full hover:border-mocha-500 transition-all duration-300"
+                  aria-label="Search"
+                >
+                  <Search size={13} />
+                </button>
+              )}
               <button
                 onClick={() => setAdd(true)}
                 className="flex items-center gap-2 px-5 py-2.5 bg-mocha-500 text-mocha-100 text-[10px] tracking-[0.3em] uppercase rounded-full hover:bg-mocha-400 transition-all duration-300"
@@ -164,11 +230,29 @@ export default function Outfit() {
       </div>
 
       {/* ── Outfit grid / empty state ────────────────────────── */}
-      <div className="flex-1 overflow-y-auto px-4 sm:px-8 lg:px-20">
+      <div
+        className="flex-1 overflow-y-auto px-4 sm:px-8 lg:px-20"
+        onClick={e => { if (e.target === e.currentTarget) setEdit(false); }}
+      >
         {outfits.length > 0 ? (
-          <div className="mt-8 pb-8 flex flex-wrap justify-center gap-6 animate-fade-in" style={{ animationDelay: '0.35s' }}>
-            {memoizedOutfits}
-          </div>
+          filteredOutfits.length > 0 ? (
+            <div
+              className="mt-8 pb-8 flex flex-wrap justify-center gap-6 animate-fade-in"
+              style={{ animationDelay: '0.35s' }}
+              onClick={e => { if (e.target === e.currentTarget) setEdit(false); }}
+            >
+              {memoizedOutfits}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-32 animate-fade-in">
+              <p className="font-cormorant text-3xl font-light text-mocha-400">
+                No results found.
+              </p>
+              <p className="mt-3 text-[10px] tracking-[0.4em] uppercase text-mocha-300 text-center max-w-xs">
+                {trimmedSearch ? 'Try a different search term' : 'Name your outfits to find them here'}
+              </p>
+            </div>
+          )
         ) : (
           <div className="flex flex-col items-center justify-center py-32 animate-fade-in" style={{ animationDelay: '0.4s' }}>
             <span className="font-cormorant text-[6rem] font-light text-mocha-200/60 leading-none select-none">
@@ -276,12 +360,58 @@ export default function Outfit() {
               </div>
             </div>
 
+            {/* Card picker filters */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                {/* Search */}
+                <div className="flex items-center gap-2 flex-1 border border-mocha-200 rounded-full px-3 py-1.5">
+                  <Search size={10} className="text-mocha-300 flex-shrink-0" />
+                  <input
+                    type="text"
+                    value={pickerSearch}
+                    onChange={e => setPickerSearch(e.target.value)}
+                    placeholder="Search clothing…"
+                    className="bg-transparent outline-none text-[10px] tracking-[0.2em] text-mocha-500 placeholder-mocha-300 w-full"
+                  />
+                  {pickerSearch && (
+                    <button onClick={() => setPickerSearch('')} className="text-mocha-300 hover:text-mocha-500 leading-none text-xs">✕</button>
+                  )}
+                </div>
+                {/* Starred toggle */}
+                <button
+                  onClick={() => setPickerStarred(s => !s)}
+                  className={`w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-full border transition-all duration-200 ${
+                    pickerStarred ? 'bg-mocha-500 text-mocha-100 border-mocha-500' : 'border-mocha-200 text-mocha-400 hover:border-mocha-400'
+                  }`}
+                  aria-label="Starred"
+                >
+                  <span className="text-[11px] leading-none">{pickerStarred ? '★' : '☆'}</span>
+                </button>
+              </div>
+              {/* Filter pills */}
+              <div className="flex gap-1.5 overflow-x-auto pb-0.5">
+                {pickerFilterLabels.map(label => (
+                  <button
+                    key={label}
+                    onClick={() => setPickerFilter(label)}
+                    className={`px-3 py-1 rounded-full text-[9px] tracking-[0.3em] uppercase whitespace-nowrap transition-all duration-200 flex-shrink-0 ${
+                      pickerFilter === label
+                        ? 'bg-mocha-500 text-mocha-100'
+                        : 'border border-mocha-200 text-mocha-400 hover:border-mocha-400 hover:text-mocha-500'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* Card picker */}
             <div className="h-40 sm:h-48 overflow-y-auto rounded-2xl border border-mocha-200">
               <CardList
                 userID={user.id}
-                cards={cards}
-                hasClothes={hasClothes}
+                cards={pickerCards}
+                hasClothes={pickerCards.length > 0}
                 edit={false}
                 select={true}
                 handleOuterWear={handleSelect}

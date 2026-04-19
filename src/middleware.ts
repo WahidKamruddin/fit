@@ -2,7 +2,9 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-const PUBLIC_PATHS = ['/', '/login', '/register', '/pricing', '/beta', '/bugs', '/auth/callback', '/auth/signout']
+const PUBLIC_PATHS = ['/', '/login', '/register', '/pricing', '/beta', '/bugs', '/auth/callback', '/social-gate']
+
+const SOCIAL_PATHS = ['/feed', '/create-post', '/post', '/profile', '/messages', '/notifications']
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -16,6 +18,13 @@ export async function middleware(request: NextRequest) {
     if (pathname === '/beta' && hasBetaAccess) {
       return NextResponse.redirect(new URL('/login', request.url))
     }
+  }
+  // ────────────────────────────────────────────────────────────────────────────
+
+  // ── Social gate ──────────────────────────────────────────────────────────────
+  const isSocialPath = SOCIAL_PATHS.some(p => pathname === p || pathname.startsWith(p + '/'))
+  if (isSocialPath && !request.cookies.has('social_access')) {
+    return NextResponse.redirect(new URL('/social-gate', request.url))
   }
   // ────────────────────────────────────────────────────────────────────────────
 

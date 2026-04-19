@@ -7,6 +7,7 @@ import { BiCloset } from "react-icons/bi";
 import { PiTShirt } from "react-icons/pi";
 import { BsCalendar3 } from "react-icons/bs";
 import { AiOutlineShopping } from "react-icons/ai";
+import { capitalize } from "@/src/app/lib/utils";
 
 const quickNav = [
     { label: "Closet",   sub: "Your wardrobe",  href: "/closet",   Icon: BiCloset,         num: "01" },
@@ -19,7 +20,7 @@ export default function Page() {
     const user    = useUser();
     const { cards, outfits } = useCloset();
 
-    const firstName = user?.user_metadata?.full_name?.split(' ')[0] ?? null;
+    const firstName = capitalize(user?.user_metadata?.full_name?.split(' ')[0] ?? '')  || null;
 
     const dateStr = new Date().toLocaleDateString('en-US', {
         weekday: 'long', month: 'long', day: 'numeric',

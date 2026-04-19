@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const forwardedHost = request.headers.get('x-forwarded-host')
   const origin = process.env.NODE_ENV === 'development'
-    ? new URL(request.url).origin
+    ? 'http://localhost:3000'
     : forwardedHost ? `https://${forwardedHost}` : new URL(request.url).origin
   const code = searchParams.get('code')
 

@@ -8,7 +8,7 @@ import CardList from "@/src/app/components/card-list";
 import { useUser } from "@/src/app/auth/auth";
 import OutfitCard from "@/src/app/components/outfit-card";
 import { useCloset } from "@/src/app/providers/closetContext";
-import { Pencil, Sparkles } from "lucide-react";
+import { Pencil, Search, Sparkles } from "lucide-react";
 import PageSkeleton from "@/src/app/components/page-skeleton";
 import OutfitGeneratorModal from "@/src/app/components/outfit-generator-modal";
 import type { OutfitDoc } from "@/src/app/types/outfit";
@@ -27,6 +27,7 @@ export default function Outfit() {
   const { cards, hasClothes, outfits, addOutfit: addOutfitToContext } = useCloset();
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
   const [add, setAdd] = useState(false);
   const [edit, setEdit] = useState(false);
   const [aiModal, setAiModal] = useState(false);
@@ -144,6 +145,34 @@ export default function Outfit() {
             </h1>
 
             <div className="flex items-center gap-2 sm:gap-3 pb-1 animate-fade-in" style={{ animationDelay: '0.25s' }}>
+              {searchOpen ? (
+                <div className="flex items-center gap-2 border border-mocha-300 rounded-full px-4 py-2 transition-all duration-300">
+                  <Search size={11} className="text-mocha-400 flex-shrink-0" />
+                  <input
+                    autoFocus
+                    type="text"
+                    value={searchQuery}
+                    onChange={e => setSearchQuery(e.target.value)}
+                    placeholder="Search outfits…"
+                    className="bg-transparent outline-none text-[10px] tracking-[0.2em] text-mocha-500 placeholder-mocha-300 w-32"
+                  />
+                  <button
+                    onClick={() => { setSearchOpen(false); setSearchQuery(''); }}
+                    className="text-mocha-300 hover:text-mocha-500 transition-colors duration-200 leading-none"
+                    aria-label="Close search"
+                  >
+                    <span className="text-xs">✕</span>
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setSearchOpen(true)}
+                  className="flex items-center justify-center w-9 h-9 border border-mocha-300 text-mocha-500 rounded-full hover:border-mocha-500 transition-all duration-300"
+                  aria-label="Search"
+                >
+                  <Search size={13} />
+                </button>
+              )}
               <button
                 onClick={() => setAdd(true)}
                 className="flex items-center gap-2 px-5 py-2.5 bg-mocha-500 text-mocha-100 text-[10px] tracking-[0.3em] uppercase rounded-full hover:bg-mocha-400 transition-all duration-300"
@@ -174,17 +203,6 @@ export default function Outfit() {
 
           {/* Divider */}
           <div className="mt-6 h-px bg-mocha-200 animate-fade-in" style={{ animationDelay: '0.3s' }} />
-
-          {/* Search input */}
-          <div className="mt-4 animate-fade-in" style={{ animationDelay: '0.35s' }}>
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Search outfits by name…"
-              className="w-full bg-transparent border-b border-mocha-200 focus:border-mocha-400 outline-none text-sm text-mocha-500 placeholder-mocha-300 py-2 transition-colors duration-200"
-            />
-          </div>
         </div>
       </div>
 

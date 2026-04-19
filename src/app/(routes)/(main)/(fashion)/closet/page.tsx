@@ -9,7 +9,7 @@ import { FileUploader } from "react-drag-drop-files";
 import { useUser } from "@/src/app/auth/auth";
 import { v4 } from "uuid";
 import { useCloset } from "@/src/app/providers/closetContext";
-import { Pencil } from "lucide-react";
+import { Pencil, Search } from "lucide-react";
 import PageSkeleton from "@/src/app/components/page-skeleton";
 import { analyzeClothing } from "@/src/lib/actions/analyze-clothing";
 import { logUploadError } from "@/src/lib/actions/log-error";
@@ -33,6 +33,7 @@ export default function Closet() {
 
   // Add data states
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
   const [add, setAdd] = useState(false);
   const [edit, setEdit] = useState(false);
   const [file, setFile] = useState<File | null>(null);
@@ -254,6 +255,34 @@ export default function Closet() {
 
           {/* Action buttons */}
           <div className="flex items-center gap-2 sm:gap-3 pb-1 animate-fade-in" style={{ animationDelay: '0.25s' }}>
+            {searchOpen ? (
+              <div className="flex items-center gap-2 border border-mocha-300 rounded-full px-4 py-2 transition-all duration-300">
+                <Search size={11} className="text-mocha-400 flex-shrink-0" />
+                <input
+                  autoFocus
+                  type="text"
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  placeholder="Search clothing…"
+                  className="bg-transparent outline-none text-[10px] tracking-[0.2em] text-mocha-500 placeholder-mocha-300 w-32"
+                />
+                <button
+                  onClick={() => { setSearchOpen(false); setSearchQuery(''); }}
+                  className="text-mocha-300 hover:text-mocha-500 transition-colors duration-200 leading-none"
+                  aria-label="Close search"
+                >
+                  <span className="text-xs">✕</span>
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setSearchOpen(true)}
+                className="flex items-center justify-center w-9 h-9 border border-mocha-300 text-mocha-500 rounded-full hover:border-mocha-500 transition-all duration-300"
+                aria-label="Search"
+              >
+                <Search size={13} />
+              </button>
+            )}
             <button
               onClick={() => setAdd(true)}
               className="flex items-center gap-2 px-5 py-2.5 bg-mocha-500 text-mocha-100 text-[10px] tracking-[0.3em] uppercase rounded-full hover:bg-mocha-400 transition-all duration-300"
@@ -295,16 +324,6 @@ export default function Closet() {
           ))}
         </div>
 
-        {/* Search input */}
-        <div className="mt-4 animate-fade-in" style={{ animationDelay: '0.4s' }}>
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            placeholder="Search clothing…"
-            className="w-full bg-transparent border-b border-mocha-200 focus:border-mocha-400 outline-none text-sm text-mocha-500 placeholder-mocha-300 py-2 transition-colors duration-200"
-          />
-        </div>
       </div>
 
       {/* ── Clothing grid ─────────────────────────────────────── */}

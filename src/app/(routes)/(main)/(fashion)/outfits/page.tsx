@@ -32,6 +32,11 @@ export default function Outfit() {
   const [edit, setEdit] = useState(false);
   const [aiModal, setAiModal] = useState(false);
 
+  // Picker filters (inside the add outfit modal)
+  const [pickerFilter, setPickerFilter] = useState<string>('All');
+  const [pickerSearch, setPickerSearch] = useState('');
+  const [pickerStarred, setPickerStarred] = useState(false);
+
   const handleSelect = (item: Clothing, id: string) => {
     const type = item.getType();
     if (type === "Outerwear") setOuterWear([item, id]);
@@ -92,7 +97,25 @@ export default function Outfit() {
     setBottom(null);
     setShoes(null);
     setAccessories([]);
+    setPickerFilter('All');
+    setPickerSearch('');
+    setPickerStarred(false);
   };
+
+  const pickerFilterLabels = ['All', 'Outerwear', 'Tops', 'Bottoms', 'Shoes', 'Accessories'];
+
+  const pickerCards = useMemo(() => {
+    let filtered = cards;
+    if (pickerFilter === 'Outerwear') filtered = filtered.filter(c => c.clothing.getType() === 'Outerwear');
+    else if (pickerFilter === 'Tops') filtered = filtered.filter(c => c.clothing.getType() === 'Top');
+    else if (pickerFilter === 'Bottoms') filtered = filtered.filter(c => c.clothing.getType() === 'Bottom');
+    else if (pickerFilter === 'Shoes') filtered = filtered.filter(c => c.clothing.getType() === 'Shoes');
+    else if (pickerFilter === 'Accessories') filtered = filtered.filter(c => c.clothing.getType() === 'Accessory');
+    if (pickerStarred) filtered = filtered.filter(c => c.clothing.getStarred());
+    const q = pickerSearch.trim().toLowerCase();
+    if (q) filtered = filtered.filter(c => c.clothing.getName().toLowerCase().includes(q));
+    return filtered;
+  }, [cards, pickerFilter, pickerStarred, pickerSearch]);
 
   const trimmedSearch = searchQuery.trim().toLowerCase();
 
@@ -337,12 +360,58 @@ export default function Outfit() {
               </div>
             </div>
 
+            {/* Card picker filters */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                {/* Search */}
+                <div className="flex items-center gap-2 flex-1 border border-mocha-200 rounded-full px-3 py-1.5">
+                  <Search size={10} className="text-mocha-300 flex-shrink-0" />
+                  <input
+                    type="text"
+                    value={pickerSearch}
+                    onChange={e => setPickerSearch(e.target.value)}
+                    placeholder="Search clothing…"
+                    className="bg-transparent outline-none text-[10px] tracking-[0.2em] text-mocha-500 placeholder-mocha-300 w-full"
+                  />
+                  {pickerSearch && (
+                    <button onClick={() => setPickerSearch('')} className="text-mocha-300 hover:text-mocha-500 leading-none text-xs">✕</button>
+                  )}
+                </div>
+                {/* Starred toggle */}
+                <button
+                  onClick={() => setPickerStarred(s => !s)}
+                  className={`w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-full border transition-all duration-200 ${
+                    pickerStarred ? 'bg-mocha-500 text-mocha-100 border-mocha-500' : 'border-mocha-200 text-mocha-400 hover:border-mocha-400'
+                  }`}
+                  aria-label="Starred"
+                >
+                  <span className="text-[11px] leading-none">{pickerStarred ? '★' : '☆'}</span>
+                </button>
+              </div>
+              {/* Filter pills */}
+              <div className="flex gap-1.5 overflow-x-auto pb-0.5">
+                {pickerFilterLabels.map(label => (
+                  <button
+                    key={label}
+                    onClick={() => setPickerFilter(label)}
+                    className={`px-3 py-1 rounded-full text-[9px] tracking-[0.3em] uppercase whitespace-nowrap transition-all duration-200 flex-shrink-0 ${
+                      pickerFilter === label
+                        ? 'bg-mocha-500 text-mocha-100'
+                        : 'border border-mocha-200 text-mocha-400 hover:border-mocha-400 hover:text-mocha-500'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* Card picker */}
             <div className="h-40 sm:h-48 overflow-y-auto rounded-2xl border border-mocha-200">
               <CardList
                 userID={user.id}
-                cards={cards}
-                hasClothes={hasClothes}
+                cards={pickerCards}
+                hasClothes={pickerCards.length > 0}
                 edit={false}
                 select={true}
                 handleOuterWear={handleSelect}

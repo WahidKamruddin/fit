@@ -6,7 +6,7 @@ import { supabase } from "@/src/app/supabaseConfig/client";
 import { add, eachDayOfInterval, endOfMonth, format, getDay, isEqual, isToday, parse, startOfMonth, startOfToday } from "date-fns";
 import OutfitCard from "@/src/app/components/outfit-card";
 import { IoMdAdd } from "react-icons/io";
-import { ArrowLeft, ArrowRight, Pencil } from "lucide-react";
+import { ArrowLeft, ArrowRight, Pencil, Search } from "lucide-react";
 import { useCloset } from "@/src/app/providers/closetContext";
 import PageSkeleton from "@/src/app/components/page-skeleton";
 import { capitalize } from "@/src/app/lib/utils";
@@ -18,6 +18,7 @@ export default function Calendar() {
   const [fit, setFit] = useState<string | null>(null);
   const [addButton, setAddButton] = useState(false);
   const [editMode, setEditMode] = useState(false);
+  const [outfitSearch, setOutfitSearch] = useState('');
 
   const today = startOfToday();
   const [selectedDay, setSelectedDay] = useState(today);
@@ -55,6 +56,10 @@ export default function Calendar() {
 
   // Outfits not yet assigned to this day (for the picker modal)
   const unassignedOutfits = outfits.filter(o => !o.Dates.includes(formattedDay));
+
+  const filteredUnassigned = outfitSearch.trim()
+    ? unassignedOutfits.filter(o => o.Name?.toLowerCase().includes(outfitSearch.trim().toLowerCase()))
+    : unassignedOutfits;
 
   const handleOutfit = async (outfitId: string) => {
     if (!user) return;
@@ -194,7 +199,7 @@ export default function Calendar() {
         </div>
 
         {/* Day panel */}
-        <div className="w-full lg:flex-1 bg-white rounded-2xl shadow-sm border border-mocha-200/60 p-6 sm:p-8">
+        <div className="w-full lg:flex-1 min-w-0 bg-white rounded-2xl shadow-sm border border-mocha-200/60 p-6 sm:p-8">
           {dayOutfits.length > 0 ? (
             <div className="flex flex-col h-full">
               <div className="flex items-start justify-between mb-2">
@@ -229,11 +234,11 @@ export default function Calendar() {
               </div>
               <div className="h-px bg-mocha-200 mb-6" />
               <div
-                className="overflow-x-auto -mx-1 px-1 -mt-6 pt-6 -mb-16 pb-16"
+                className="overflow-x-auto -mx-6 sm:-mx-8 px-6 sm:px-8 -mb-6 sm:-mb-8 pb-6 sm:pb-8"
                 onClick={e => { if (e.target === e.currentTarget) setEditMode(false); }}
               >
                 <div
-                  className="flex gap-4 pb-2 pt-3"
+                  className="flex gap-4 pt-4 pb-4 w-max"
                   onClick={e => { if (e.target === e.currentTarget) setEditMode(false); }}
                 >
                   {dayOutfits.map(outfit => (
@@ -279,7 +284,7 @@ export default function Calendar() {
           <div className="relative w-full max-w-2xl bg-off-white-100 rounded-3xl p-6 sm:p-8 shadow-2xl flex flex-col gap-6">
 
             <button
-              onClick={() => { setAddButton(false); setFit(null); }}
+              onClick={() => { setAddButton(false); setFit(null); setOutfitSearch(''); }}
               className="absolute top-5 right-5 w-8 h-8 flex items-center justify-center rounded-full border border-mocha-200 text-mocha-400 hover:border-mocha-400 hover:text-mocha-500 transition-all duration-200"
               aria-label="Close"
             >
@@ -295,19 +300,40 @@ export default function Calendar() {
               </h2>
             </div>
 
+            {/* Search */}
+            <div className="flex items-center gap-2 border border-mocha-200 rounded-full px-3 py-1.5">
+              <Search size={10} className="text-mocha-300 flex-shrink-0" />
+              <input
+                type="text"
+                value={outfitSearch}
+                onChange={e => setOutfitSearch(e.target.value)}
+                placeholder="Search outfits…"
+                className="bg-transparent outline-none text-[10px] tracking-[0.2em] text-mocha-500 placeholder-mocha-300 w-full"
+              />
+              {outfitSearch && (
+                <button onClick={() => setOutfitSearch('')} className="text-mocha-300 hover:text-mocha-500 leading-none text-xs">✕</button>
+              )}
+            </div>
+
             <div className="h-64 sm:h-80 overflow-y-auto rounded-2xl border border-mocha-200">
               {unassignedOutfits.length > 0 ? (
-                <div className="flex flex-wrap justify-center gap-3 p-4">
-                  {unassignedOutfits.map((something) => (
-                    <button
-                      key={something.id}
-                      onClick={() => setFit(something.id)}
-                      className={`rounded-2xl border-2 transition-all duration-200 ${fit === something.id ? 'border-mocha-500 scale-105' : 'border-transparent'}`}
-                    >
-                      <OutfitCard userID={user.id} outfit={something} clothes={cards} canEdit={false} />
-                    </button>
-                  ))}
-                </div>
+                filteredUnassigned.length > 0 ? (
+                  <div className="flex flex-wrap justify-center gap-3 p-4">
+                    {filteredUnassigned.map((something) => (
+                      <button
+                        key={something.id}
+                        onClick={() => setFit(something.id)}
+                        className={`rounded-2xl border-2 transition-all duration-200 ${fit === something.id ? 'border-mocha-500 scale-105' : 'border-transparent'}`}
+                      >
+                        <OutfitCard userID={user.id} outfit={something} clothes={cards} canEdit={false} />
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="h-full flex flex-col items-center justify-center gap-2">
+                    <p className="text-[10px] tracking-[0.4em] uppercase text-mocha-300">No results found</p>
+                  </div>
+                )
               ) : (
                 <div className="h-full flex flex-col items-center justify-center gap-2">
                   <p className="text-[10px] tracking-[0.4em] uppercase text-mocha-300">

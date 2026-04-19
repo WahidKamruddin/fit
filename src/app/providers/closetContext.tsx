@@ -33,6 +33,7 @@ interface ClosetContextValue {
   addOutfitDate: (id: string, date: string) => void;
   removeOutfitDate: (id: string, date: string) => void;
   updateCardName: (id: string, name: string) => void;
+  updateCardStarred: (id: string, starred: boolean) => void;
   updateOutfitName: (id: string, name: string) => void;
   updateOutfit: (id: string, updates: Partial<OutfitDoc>) => void;
 }
@@ -48,6 +49,7 @@ export const ClosetContext = createContext<ClosetContextValue>({
   addOutfitDate: () => {},
   removeOutfitDate: () => {},
   updateCardName: () => {},
+  updateCardStarred: () => {},
   updateOutfitName: () => {},
   updateOutfit: () => {},
 });
@@ -158,6 +160,14 @@ export function ClosetProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
+  const updateCardStarred = (id: string, starred: boolean) => {
+    setCards((prev) => prev.map((c) => {
+      if (c.id !== id) return c;
+      c.clothing.starred = starred;
+      return { ...c };
+    }));
+  };
+
   const updateCardName = (id: string, name: string) => {
     setCards((prev) => prev.map((c) => {
       if (c.id !== id) return c;
@@ -175,10 +185,11 @@ export function ClosetProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <ClosetContext.Provider value={{ cards, outfits, hasClothes, removeCard, addCard, addOutfit, removeOutfit, addOutfitDate, removeOutfitDate, updateCardName, updateOutfitName, updateOutfit }}>
+    <ClosetContext.Provider value={{ cards, outfits, hasClothes, removeCard, addCard, addOutfit, removeOutfit, addOutfitDate, removeOutfitDate, updateCardName, updateCardStarred, updateOutfitName, updateOutfit }}>
       {children}
     </ClosetContext.Provider>
   );
 }
+
 
 export const useCloset = () => useContext(ClosetContext);

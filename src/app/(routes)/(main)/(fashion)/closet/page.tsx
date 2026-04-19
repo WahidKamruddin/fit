@@ -43,26 +43,57 @@ export default function Closet() {
   const [pickerError, setPickerError] = useState('');
 
 
-  const fileTypes = ["JPG", "JPEG", "PNG", "GIF"];
+  const fileTypes = ["JPG", "JPEG", "PNG", "GIF", "WEBP", "HEIC", "HEIF"];
 
   // Function to handle background removal (client-side via @imgly/background-removal)
   const handleBackgroundRemoval = async (): Promise<File> => {
     if (!file) throw new Error('No file selected');
 
-    const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/heic', 'image/heif'];
     if (!ALLOWED_TYPES.includes(file.type)) {
-      throw new Error('Please upload a valid image file (JPG, PNG, GIF, or WEBP).');
+      throw new Error('Please upload a valid image file (JPG, PNG, GIF, WEBP, HEIC, or HEIF).');
     }
 
-    const MAX_SIZE_MB = 20;
+    const MAX_SIZE_MB = 50;
     if (file.size > MAX_SIZE_MB * 1024 * 1024) {
       throw new Error(`Image must be under ${MAX_SIZE_MB}MB.`);
     }
 
+    // Convert HEIC/HEIF to JPEG before anything else (browsers can't decode them natively)
+    let sourceFile: File = file;
+    if (file.type === 'image/heic' || file.type === 'image/heif') {
+      setLoadingStep('Converting image…');
+      const heic2any = (await import('heic2any')).default;
+      const converted = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.92 });
+      const blob = Array.isArray(converted) ? converted[0] : converted;
+      sourceFile = new File([blob], 'converted.jpg', { type: 'image/jpeg' });
+    }
+
+    // Pre-compress to max 1500px before background removal.
+    // The ONNX model (isnet_quint8) works at ~1024px internally — feeding it a
+    // larger image wastes memory and time with no quality benefit.
+    sourceFile = await new Promise<File>((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const MAX = 1500;
+        const scale = Math.min(1, MAX / Math.max(img.width, img.height));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob(
+          (blob) => resolve(new File([blob!], 'pre-compressed.jpg', { type: 'image/jpeg' })),
+          'image/jpeg',
+          0.90,
+        );
+      };
+      img.src = URL.createObjectURL(sourceFile);
+    });
+
     const { removeBackground } = await import('@imgly/background-removal');
 
     try {
-      const imageBlob = await removeBackground(file, {
+      const imageBlob = await removeBackground(sourceFile, {
         model: 'isnet_quint8',
         output: {
           format: 'image/png',
@@ -119,21 +150,34 @@ export default function Closet() {
     const imageID = v4();
     const path = `${user!.id}/${imageID}`;
 
-    // Downscale the processed image before base64-encoding it for Gemini.
-    // The full-resolution PNG (lossless) can be 3× larger than the original JPEG,
-    // pushing the server action payload past Netlify's 6MB function body limit.
-    // 1024px is more than enough for clothing analysis.
-    const base64 = await new Promise<string>((resolve) => {
+    // Produce two outputs from the background-removed PNG in one canvas pass:
+    //   • fileToUpload — WebP @ 0.88, capped at 1800px (stored in Supabase, ~25-35% smaller than PNG)
+    //   • base64       — JPEG @ 0.85, capped at 1024px (sent to Gemini; stays under Netlify's 6MB limit)
+    const { fileToUpload, base64 } = await new Promise<{ fileToUpload: File; base64: string }>((resolve) => {
       const img = new Image();
       img.onload = () => {
-        const MAX = 1024;
-        const scale = Math.min(1, MAX / Math.max(img.width, img.height));
-        const canvas = document.createElement('canvas');
-        canvas.width = Math.round(img.width * scale);
-        canvas.height = Math.round(img.height * scale);
-        canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
-        resolve(dataUrl.split(',')[1]);
+        // Storage image: cap at 1800px, WebP supports transparency from BG removal
+        const STORE_MAX = 1800;
+        const storeScale = Math.min(1, STORE_MAX / Math.max(img.width, img.height));
+        const storeCanvas = document.createElement('canvas');
+        storeCanvas.width = Math.round(img.width * storeScale);
+        storeCanvas.height = Math.round(img.height * storeScale);
+        storeCanvas.getContext('2d')!.drawImage(img, 0, 0, storeCanvas.width, storeCanvas.height);
+
+        // AI image: further downscale to 1024px JPEG
+        const AI_MAX = 1024;
+        const aiScale = Math.min(1, AI_MAX / Math.max(storeCanvas.width, storeCanvas.height));
+        const aiCanvas = document.createElement('canvas');
+        aiCanvas.width = Math.round(storeCanvas.width * aiScale);
+        aiCanvas.height = Math.round(storeCanvas.height * aiScale);
+        aiCanvas.getContext('2d')!.drawImage(storeCanvas, 0, 0, aiCanvas.width, aiCanvas.height);
+        const base64 = aiCanvas.toDataURL('image/jpeg', 0.85).split(',')[1];
+
+        storeCanvas.toBlob(
+          (blob) => resolve({ fileToUpload: new File([blob!], 'processed-image.webp', { type: 'image/webp' }), base64 }),
+          'image/webp',
+          0.88,
+        );
       };
       img.src = URL.createObjectURL(processedFile);
     });
@@ -141,7 +185,7 @@ export default function Closet() {
     // Upload to storage and AI scan in parallel
     setLoadingStep('Uploading & analyzing…');
     const [uploadResult, analysis] = await Promise.all([
-      supabase.storage.from('clothing-images').upload(path, processedFile),
+      supabase.storage.from('clothing-images').upload(path, fileToUpload),
       analyzeClothing(base64, 'image/jpeg'),
     ]);
 
@@ -149,8 +193,8 @@ export default function Closet() {
       logUploadError({
         step: 'upload',
         error: uploadResult.error.message,
-        fileSize: processedFile.size,
-        fileType: processedFile.type,
+        fileSize: fileToUpload.size,
+        fileType: fileToUpload.type,
         userId: user!.id,
       }).catch(() => {});
       throw new Error('Upload failed. Please try again.');
@@ -360,10 +404,10 @@ export default function Closet() {
           ) : (
             <div className="flex flex-col items-center justify-center py-32 animate-fade-in">
               <p className="font-cormorant text-3xl font-light text-mocha-400">
-                No results found.
+                {trimmed ? 'No results found.' : 'Nothing here yet.'}
               </p>
               <p className="mt-3 text-[10px] tracking-[0.4em] uppercase text-mocha-300 text-center max-w-xs">
-                Try a different search term
+                {trimmed ? 'Try a different search term' : 'Add a piece to get started'}
               </p>
             </div>
           )
@@ -422,11 +466,11 @@ export default function Closet() {
                   <FileUploader
                     multiple={false}
                     handleChange={(e: File) => { setPickerError(''); setFile(e); }}
-                    onSizeError={() => setPickerError('Image must be under 20MB.')}
+                    onSizeError={() => setPickerError('Image must be under 50MB.')}
                     types={fileTypes}
                     name="file"
                     label="Upload or drop a photo here"
-                    maxSize={20}
+                    maxSize={50}
                   />
                 </div>
                 {pickerError && (

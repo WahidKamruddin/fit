@@ -25,7 +25,7 @@ const Card = ({ userID, aClothing, edit, select, handleOuterWear, onLongPress }:
   const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pressStartRef = useRef<number>(0);
   const longFiredRef = useRef(false);
-  const { removeCard, outfits, removeOutfit, updateOutfit, updateCardName } = useCloset();
+  const { removeCard, outfits, removeOutfit, updateOutfit, updateCardName, updateCardStarred } = useCloset();
 
   const startPress = () => {
     longFiredRef.current = false;
@@ -65,7 +65,12 @@ const Card = ({ userID, aClothing, edit, select, handleOuterWear, onLongPress }:
   const toggleFavorite = async () => {
     const newStarred = !starred;
     setStarred(newStarred);
-    await supabase.from('clothes').update({ starred: newStarred }).eq('id', aClothing.id).eq('user_id', userID);
+    updateCardStarred(aClothing.id, newStarred);
+    const { error } = await supabase.from('clothes').update({ starred: newStarred }).eq('id', aClothing.id).eq('user_id', userID);
+    if (error) {
+      setStarred(!newStarred);
+      updateCardStarred(aClothing.id, !newStarred);
+    }
   };
 
   const outfitsToDelete = outfits.filter(o =>
